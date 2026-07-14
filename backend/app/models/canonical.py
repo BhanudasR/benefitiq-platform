@@ -17,6 +17,10 @@ class _Lineage:
     upload_batch_id: Mapped[str] = mapped_column(String(36))
     raw_file_id: Mapped[str] = mapped_column(String(36))
     raw_row_index: Mapped[int] = mapped_column(Integer)
+    # governance flags propagated from the dataset version at load time so every
+    # downstream metric inherits the dataset's trust level (Gold Standard rule 14).
+    data_quality_caveat: Mapped[bool] = mapped_column(Boolean, default=False)
+    restricted: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class ClientMaster(_Lineage, Base):

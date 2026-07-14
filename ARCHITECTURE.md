@@ -46,3 +46,23 @@ canonical-mapped rows carrying `__raw_row_index` for lineage back to immutable r
 
 Not yet wired: DB-session persistence of MappingProfile/ValidationIssue/DQResult (models exist);
 correction-overlay apply + re-validate loop; canonical loaders. Those are Sprint 2 candidates.
+
+## Sprint 2 — Persistence, Correction & Governed Load (Warehouse layer)
+State machine now persisted on UploadBatch + DatasetVersion:
+UPLOADED → MAPPED → VALIDATED → DQ_SCORED → IN_REVIEW → REVALIDATED → APPROVED → ACTIVE(/Restricted)
+→ LOADED. Orchestration in `services/onboarding_service.py`; every transition writes AuditLog.
+
+Two-gate model (`services/gate.py`):
+- Row gate (always): critical/quarantined rows never load; warn/info load with caveats.
+- Dataset gate (by DQ): >=85 Analytics Ready · 70-84 Conditional · <70 Restricted via Admin override
+  (mandatory reason, OverrideRecord captures user/timestamp/tenant/version/score/failed-components/
+  impacted-modules/reason/resulting-status). Restricted + caveat flags propagate onto canonical rows.
+
+Immutability: raw bytes are read from the object store and re-materialised with confirmed mapping +
+correction overlays on every validate/dq/load. Corrections are overlays (CorrectionOverlay); raw is
+never rewritten. Canonical loader (`services/canonical_loader.py`) is idempotent (keyed by dataset
+version + claim_number) and Sprint-2-scoped to claims + claim_bill_component only.
+
+Migrations: Alembic baseline under `migrations/` (target_metadata = Base.metadata; sqlite batch mode
+for dev, Postgres for prod). Dev/pilot may auto-create tables on startup (BIQ_AUTO_CREATE_TABLES).
+Still future: analytics/metric engine, Renewal simulation, policy/member loaders, dashboards, AI.

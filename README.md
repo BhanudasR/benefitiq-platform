@@ -64,3 +64,26 @@ Sprint 1 adds the governed onboarding pipeline (still no dashboards / no analyti
 
 Principle enforced: **no dashboard before trusted data, no analytics before canonical data.** A low
 score never blocks raw upload — it blocks *blind* analytics and shows exactly what to fix.
+
+## What Sprint 2 delivers — Persistence, Correction & Governed Canonical Load
+Sprint 2 turns the Sprint 1 engines into a durable, audited lifecycle (still no dashboards / AI / KPIs):
+
+- **Persistent onboarding lifecycle** (`services/onboarding_service.py`): upload → mapping → validate
+  → dq → correct → revalidate → approve → activate/override → load. Every step persists artifacts,
+  writes an `AuditLog` row, and is tenant-scoped. Raw is re-materialised from immutable bytes +
+  confirmed mapping + correction overlays — **never mutated**.
+- **Persistence** of `MappingProfile`, `ValidationIssue`, `ReviewItem` (review queue), `DQResult`,
+  `DatasetVersion`, `CorrectionOverlay`, `OverrideRecord`.
+- **Two-gate canonical load** (`services/gate.py`, `services/canonical_loader.py`):
+  - Row-level: CRITICAL rows are quarantined and **never** loaded; warn/info load with caveats.
+  - Dataset-level: DQ ≥85 → Analytics Ready (Reviewer approval); 70–84 → Conditional (Reviewer
+    approval, KPI caveats); <70 → blocked, **Admin override only** → Restricted (mandatory reason +
+    full audit; never loads critical rows; downstream advisory outputs stay blocked/caveated).
+- **Idempotent claims + bill-component loader skeleton** — writes only clean rows from an ACTIVE
+  version, propagating `data_quality_caveat` + `restricted` onto every canonical row.
+- **Alembic** migration baseline for the full schema (`migrations/`), plus dev startup auto-create.
+- Batch-scoped API (`api/routes_batches.py`); 66 tests (SQLite-backed), including tenant isolation,
+  audit-per-transition, override rules, and loader idempotency.
+
+*Not in scope (future):* analytics/KPIs, ICR, Renewal simulation, dashboards, AI Copilot — no
+analytics is computed in Sprint 2; this is the trusted-data foundation those will consume.

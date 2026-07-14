@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-prod"
     jwt_alg: str = "HS256"
     jwt_ttl_minutes: int = 60
+    # Dev/pilot convenience: create tables on startup (use Alembic in prod -> set false)
+    auto_create_tables: bool = True
 
 
 settings = Settings()

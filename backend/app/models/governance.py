@@ -1,7 +1,7 @@
-"""Governance / trust-layer tables: immutable raw registry, batches, versions,
-correction overlays, mapping profiles, DQ results, validation issues, and an
-append-only audit log. Every row is tenant-scoped and preserves lineage.
-Portable types (sqlite/PG)."""
+"""Governance / trust-layer tables: immutable raw registry, batches, dataset
+versions, correction overlays, mapping profiles, review queue, DQ results,
+validation issues, admin override records, and an append-only audit log.
+Every row is tenant-scoped and preserves lineage. Portable types (sqlite/PG)."""
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import String, Integer, DateTime, Boolean, Numeric, JSON, ForeignKey, Text
@@ -37,7 +37,10 @@ class UploadBatch(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
     raw_file_id: Mapped[str] = mapped_column(ForeignKey("raw_file.id"))
-    status: Mapped[str] = mapped_column(String(32), default="UPLOADED")  # onboarding state machine
+    file_kind: Mapped[str] = mapped_column(String(32))
+    field_map: Mapped[dict] = mapped_column(JSON, nullable=True)   # confirmed {source_header: canonical}
+    # onboarding state machine
+    status: Mapped[str] = mapped_column(String(32), default="UPLOADED")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
@@ -48,8 +51,14 @@ class DatasetVersion(Base):
     upload_batch_id: Mapped[str] = mapped_column(ForeignKey("upload_batch.id"))
     version_no: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String(24), default="DRAFT")  # DRAFT|APPROVED|ACTIVE|SUPERSEDED
+    dq_score: Mapped[float] = mapped_column(Numeric(5, 2), nullable=True)
+    dq_result_id: Mapped[str] = mapped_column(String(36), nullable=True)
+    readiness_status: Mapped[str] = mapped_column(String(48), nullable=True)  # Analytics Ready|Conditional|Restricted
+    restricted: Mapped[bool] = mapped_column(Boolean, default=False)
     approved_by: Mapped[str] = mapped_column(String(128), nullable=True)
     approved_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    activated_by: Mapped[str] = mapped_column(String(128), nullable=True)
+    activated_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
@@ -61,7 +70,7 @@ class CorrectionOverlay(Base):
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
     upload_batch_id: Mapped[str] = mapped_column(ForeignKey("upload_batch.id"))
     raw_row_index: Mapped[int] = mapped_column(Integer)
-    field: Mapped[str] = mapped_column(String(128))
+    field: Mapped[str] = mapped_column(String(128))              # canonical field
     raw_value: Mapped[str] = mapped_column(Text, nullable=True)
     corrected_value: Mapped[str] = mapped_column(Text, nullable=True)
     corrected_by: Mapped[str] = mapped_column(String(128))
@@ -74,13 +83,27 @@ class MappingProfile(Base):
     __tablename__ = "mapping_profile"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
-    file_kind: Mapped[str] = mapped_column(String(32))            # policy|member|claims
+    file_kind: Mapped[str] = mapped_column(String(32))
     name: Mapped[str] = mapped_column(String(128))
-    signature: Mapped[str] = mapped_column(String(32), index=True)  # layout signature
-    field_map: Mapped[dict] = mapped_column(JSON)                 # {source_header: canonical}
+    signature: Mapped[str] = mapped_column(String(32), index=True)
+    field_map: Mapped[dict] = mapped_column(JSON)
     created_by: Mapped[str] = mapped_column(String(128))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     times_reused: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ReviewItem(Base):
+    """Persisted review-queue entry (row-level). Quarantined rows carry a proposed
+    correction action. Regenerated on each (re)validation for the batch."""
+    __tablename__ = "review_item"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    upload_batch_id: Mapped[str] = mapped_column(ForeignKey("upload_batch.id"))
+    raw_row_index: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(16))             # clean|warn|quarantine
+    proposed_action: Mapped[str] = mapped_column(Text, nullable=True)
+    issues: Mapped[dict] = mapped_column(JSON, nullable=True)   # list of issues for this row
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
 class ValidationIssue(Base):
@@ -107,12 +130,29 @@ class DQResult(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class OverrideRecord(Base):
+    """Admin override for a below-threshold (DQ < 70) dataset. Loads Restricted only,
+    never critical rows. Captures the full governance context for audit."""
+    __tablename__ = "override_record"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    dataset_version_id: Mapped[str] = mapped_column(ForeignKey("dataset_version.id"))
+    upload_batch_id: Mapped[str] = mapped_column(String(36))
+    admin_user: Mapped[str] = mapped_column(String(128))
+    dq_score: Mapped[float] = mapped_column(Numeric(5, 2))
+    failed_components: Mapped[dict] = mapped_column(JSON)     # components below full marks
+    impacted_modules: Mapped[dict] = mapped_column(JSON)     # modules affected by the caveat
+    reason: Mapped[str] = mapped_column(Text)                # mandatory
+    resulting_status: Mapped[str] = mapped_column(String(48))  # Restricted / Not Reliable...
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
     actor: Mapped[str] = mapped_column(String(128))
-    action: Mapped[str] = mapped_column(String(64))       # UPLOAD|MAP|VALIDATE|DQ|CORRECT|REVALIDATE|APPROVE|ACTIVATE
+    action: Mapped[str] = mapped_column(String(64))       # UPLOAD|MAP|VALIDATE|DQ|CORRECT|REVALIDATE|APPROVE|ACTIVATE|OVERRIDE|LOAD
     entity_type: Mapped[str] = mapped_column(String(64))
     entity_id: Mapped[str] = mapped_column(String(64), nullable=True)
     meta: Mapped[dict] = mapped_column(JSON, nullable=True)
