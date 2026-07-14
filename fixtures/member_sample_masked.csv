@@ -1,0 +1,5 @@
+Txt_Policy_Number,Txt_Member_Reference_Key,Employee_ID,Date_of_Birth,Num_Age_of_Insured,Txt_Gender,Num_Sum_Insured,Txt_Relationship_of_Insured
+POL-90001,MRK-0001,EMP001,12-May-1985,40,1,500000,1
+POL-90001,MRK-0002,EMP001,03-Aug-1988,37,2,500000,2
+POL-90001,MRK-0003,EMP002,21-Jan-1959,66,1,500000,3
+POL-90002,MRK-0101,EMP101,,45,2,700000,1

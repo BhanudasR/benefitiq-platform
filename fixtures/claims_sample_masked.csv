@@ -1,0 +1,5 @@
+Txt_Policy_Number,Txt_Claim_Number,Txt_Member_Reference_Key,Txt_Diagnosis_Code_Level_I,Txt_Name_of_the_Hospital,Date_of_Admission,Date_of_Discharge,Num_Sum_Insured,Num_Total_Amount_Claimed,Num_Total_Claim_Paid,Num_Room_Charges_Claimed,Num_Nursing_Charges_claimed,Num_Percentage_of_copayment,Txt_Claim_Status,Boo_hospital_is_network_Provider
+POL-90001,CLM-500001,MRK-0003,I20,Apollo Masked,05-Apr-2026,09-Apr-2026,500000,240000,220000,40000,12000,0,1,Y
+POL-90001,CLM-500002,MRK-0002,O80,Cloudnine Masked,10-Jun-2026,12-Jun-2026,500000,90000,85000,15000,4000,0,1,Y
+POL-90001,CLM-500003,MRK-0001,,,15-Aug-2026,,500000,180000,,,,,4,N
+POL-90002,CLM-500101,MRK-0101,C50,Tata Masked,20-Jul-2026,28-Jul-2026,700000,410000,380000,60000,18000,10,2,Y
