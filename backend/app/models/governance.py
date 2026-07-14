@@ -1,6 +1,7 @@
 """Governance / trust-layer tables: immutable raw registry, batches, versions,
-correction overlays, DQ results, validation issues, and an append-only audit log.
-Every row is tenant-scoped and preserves lineage. Portable types (sqlite/PG)."""
+correction overlays, mapping profiles, DQ results, validation issues, and an
+append-only audit log. Every row is tenant-scoped and preserves lineage.
+Portable types (sqlite/PG)."""
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import String, Integer, DateTime, Boolean, Numeric, JSON, ForeignKey, Text
@@ -65,6 +66,21 @@ class CorrectionOverlay(Base):
     corrected_value: Mapped[str] = mapped_column(Text, nullable=True)
     corrected_by: Mapped[str] = mapped_column(String(128))
     corrected_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class MappingProfile(Base):
+    """A reviewer-confirmed source->canonical mapping, reusable for the next file
+    with the same layout (matched by `signature`). Tenant + insurer/TPA scoped."""
+    __tablename__ = "mapping_profile"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    file_kind: Mapped[str] = mapped_column(String(32))            # policy|member|claims
+    name: Mapped[str] = mapped_column(String(128))
+    signature: Mapped[str] = mapped_column(String(32), index=True)  # layout signature
+    field_map: Mapped[dict] = mapped_column(JSON)                 # {source_header: canonical}
+    created_by: Mapped[str] = mapped_column(String(128))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    times_reused: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class ValidationIssue(Base):

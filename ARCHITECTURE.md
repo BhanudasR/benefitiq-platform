@@ -30,4 +30,19 @@ at canonical load — raw is never mutated.
 
 ## Security
 JWT bearer + role hierarchy (ADMIN>REVIEWER>ANALYST). Every principal carries tenant_id; all governance and
-canonical rows are tenant-scoped. Encryption at rest 
+canonical rows are tenant-scoped. Encryption at rest
+## Sprint 1 — Onboarding pipeline (Normalization layer)
+State machine advanced: UPLOADED -> **PROFILED -> MAPPING_SUGGESTED -> MAPPING_CONFIRMED ->
+VALIDATED -> DQ_SCORED -> REVIEW**. Engines are pure/testable (stdlib only) and operate on
+canonical-mapped rows carrying `__raw_row_index` for lineage back to immutable raw.
+
+- Profiling: header-row detection by column-width consistency + label heuristics.
+- Mapping: registry-governed synonym/fuzzy match; confidence; `layout_signature` for profile reuse.
+- Validation: tier->severity (Critical=Error/quarantine, Important=Warning, Optional=Info) + claims
+  business rules (paid<=claimed, discharge>=admission, settled-has-paid); outstanding-claim exception.
+- DQ score: 8 weighted components (0.25/0.15/0.15/0.15/0.10/0.10/0.05/0.05); explainability
+  reconciles to the overall; bands drive the analytics gate. This is the Data Readiness Score.
+- Quarantine: row-level review queue; corrections will land as overlays (raw never mutated).
+
+Not yet wired: DB-session persistence of MappingProfile/ValidationIssue/DQResult (models exist);
+correction-overlay apply + re-validate loop; canonical loaders. Those are Sprint 2 candidates.
