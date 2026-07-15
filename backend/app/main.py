@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from .core.config import settings
 from .api import (routes_health, routes_auth, routes_upload, routes_onboarding,
-                      routes_batches, routes_metrics)
+                      routes_batches, routes_metrics, routes_simulation)
 
 
 @asynccontextmanager
@@ -20,6 +20,7 @@ app.include_router(routes_upload.router)
 app.include_router(routes_onboarding.router)
 app.include_router(routes_batches.router)
 app.include_router(routes_metrics.router)
+app.include_router(routes_simulation.router)
 
 
 @app.get("/")

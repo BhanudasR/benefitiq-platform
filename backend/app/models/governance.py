@@ -181,6 +181,21 @@ class MetricConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class SimulationConfig(Base):
+    """Tenant-scoped simulation lever defaults (overridable per request). Percentages
+    are fractions (0.01 = 1%). Not actuarial rates — governed 'what-if' defaults."""
+    __tablename__ = "simulation_config"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+    room_rent_pct: Mapped[float] = mapped_column(Numeric(6, 4), default=0.01)     # allowed RR = SI x pct
+    copay_pct: Mapped[float] = mapped_column(Numeric(6, 4), default=0.10)
+    parent_copay_pct: Mapped[float] = mapped_column(Numeric(6, 4), default=0.20)
+    disease_cap: Mapped[float] = mapped_column(Numeric(18, 2), nullable=True)
+    maternity_sublimit: Mapped[float] = mapped_column(Numeric(18, 2), default=50000)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)

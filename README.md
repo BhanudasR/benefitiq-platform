@@ -141,3 +141,28 @@ Production BenefitIQ must preserve the approved demo's premium CXO/broker dashbo
 module coverage (all 22 tabs) and decision-first storytelling, while replacing all mock/demo logic with
 governed API-driven production data. Backend-first for now; UI starts only after metric/simulation APIs
 are stable. Full detail in `PRODUCT_NOTES.md`.
+
+## What Sprint 5 delivers — Renewal Simulation & Savings Sandbox Engine (backend)
+Backend-only, read-only what-if simulation over **governed, activated** canonical data — no dashboards, no UI, no AI, no frontend math. Operational ICR is always shown unchanged.
+
+- **Room-rent proportionate deduction** (`simulation/room_rent.py`): Allowed=SI×%, Ratio=Allowed/Actual,
+  Deduction%=Max(0,1−Ratio), Claim Saving=Eligible-linked-bill×Deduction%, Portfolio Saving=Σ, Revised
+  ICR=(Incurred−Portfolio)/Premium×100. Guardrails: only affected hospitalization claims where actual>allowed,
+  only eligible linked components, exclude package/fixed, proxy (lower reliability + caveat) when breakup missing,
+  never blanket-applied.
+- **Co-pay + parent co-pay** (`copay.py`): Saving = eligible×co-pay%; member out-of-pocket shown; parent scoped to Father/Mother.
+- **Disease/procedure cap + maternity sub-limit** (`caps.py`): Saving = Σ Max(0, eligible−cap); employer saving + employee gap risk.
+- **Corporate buffer** (`corporate_buffer.py`): estimated floater draw above individual SI.
+- **Multi-lever scenario** (`scenario.py`): per-lever + combined (overlap-caveated) revised ICR.
+- **Adjusted / Defendable ICR** (`adjusted_icr.py`): excludes one-off large claims for a defensibility VIEW,
+  labelled *"Adjusted ICR / Defendable ICR view based on one-off claim review assumptions"* — never replaces
+  operational ICR; large claims stay in operational ICR.
+- **Balanced Benefit Design** (`balanced_benefit.py`): backend scoring on expected saving, ICR impact, employee
+  friction, feasibility, renewal defensibility, data reliability → classification (Preferred / Good option /
+  Use carefully / High employee impact / Not recommended unless critical).
+- Every result carries a reconciling evidence object (formula, inputs, source fields/tables, included/excluded
+  claims + reasons, assumptions, caveats, DQ status, restricted/conditional/advisory-blocked, reliability).
+- Read-only `/simulation/*` APIs; `SimulationConfig` (tenant lever defaults); Alembic migration; ~23 new tests.
+
+*Not built (future):* simulation UI (gated until stable), Ask BenefitIQ, Wellness/Placement, PPT/export,
+benchmarking/k-anonymity, earned-premium loader (would upgrade denominators from written→earned).

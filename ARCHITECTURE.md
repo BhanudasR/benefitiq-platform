@@ -106,3 +106,17 @@ The production frontend must recreate the approved demo's premium CXO/broker UX 
 decision-first storytelling, explainability + source-evidence chips) on governed, API-driven data — never
 hard-coded demo values or frontend KPI math. UI work begins only after metric/simulation APIs stabilise.
 See `PRODUCT_NOTES.md`.
+
+## Sprint 5 — Renewal Simulation & Savings Sandbox (backend-only)
+services/simulation/: base.py (SimContext reusing the metric engine's governed row-set + operational ICR
++ evidence builder), room_rent.py, copay.py, caps.py, corporate_buffer.py, scenario.py, adjusted_icr.py,
+balanced_benefit.py. New model SimulationConfig (tenant lever defaults). Read-only routes_simulation.py.
+
+All simulations are WHAT-IF over the same ACTIVE, tenant-scoped, non-quarantined canonical data used by
+metrics; Conditional -> caveat, Restricted -> restricted=true + advisory_blocked. Operational ICR is always
+reported unchanged; Adjusted/Defendable ICR is a separate labelled VIEW (large claims stay in operational).
+Room-rent enforces its guardrails (affected hospitalization claims only, actual>allowed, eligible linked
+components only, package exclusion, proxy+lower-reliability when breakup missing, never blanket). Every output
+reconciles (portfolio saving = Σ claim savings) and returns formula/inputs/source/included-excluded/assumptions/
+caveats/reliability. Migration: fourth Alembic revision chains on Sprint 4. Still future: simulation UI,
+Ask BenefitIQ, export, benchmarking, earned-premium loader.
