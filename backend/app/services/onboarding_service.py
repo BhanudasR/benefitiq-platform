@@ -28,7 +28,9 @@ from ..services.hashing import sha256_bytes
 from ..services import audit
 
 FILE_KIND_TABLE = {"policy": "policy_master", "member": "member_master",
-                   "claims": "claims", "client": "client_master"}
+                   "claims": "claims", "client": "client_master", "terms": "terms"}
+# file kinds that are NOT tabular (no mapping/validation table) e.g. policy wording PDFs
+NON_TABULAR_KINDS = {"terms_pdf"}
 
 
 class GateError(Exception):
@@ -89,7 +91,8 @@ def materialize(db, batch: UploadBatch) -> dict:
 # Lifecycle transitions
 # --------------------------------------------------------------------------- #
 def register_upload(db, *, tenant, actor, file_kind, file_name, data) -> UploadBatch:
-    table = _table(file_kind)
+    if file_kind not in NON_TABULAR_KINDS:
+        _table(file_kind)   # validate tabular kind
     digest = sha256_bytes(data)
     key = f"{tenant}/{file_kind}/{digest}/{file_name}"
     res = get_store().put_immutable(key, data)

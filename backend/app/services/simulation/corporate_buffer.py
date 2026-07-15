@@ -2,19 +2,24 @@
 corporate floater is drawn by claims that exceed the individual member Sum Insured."""
 from __future__ import annotations
 
-from .base import SimContext, sim_result, eligible_claim_amount
+from .base import SimContext, sim_result, eligible_claim_amount, confirmed_term
 from ..profiling import parse_number
 
 
 def corporate_buffer_simulation(sctx: SimContext) -> dict:
     rows = sctx.claims()
     pvs = sctx.mc.scoped_policy_versions()
-    buffer_available = 0.0
-    for p in pvs:
-        struct = p.sum_insured_structure or {}
-        cf = struct.get("corporate_floater_sum_insured")
-        if cf is not None:
-            buffer_available += float(cf)
+    term = confirmed_term(sctx, "corporate_buffer")
+    if term and term.get("value") is not None:
+        buffer_available = float(term["value"]); buffer_basis = "confirmed_policy_term"
+    else:
+        buffer_available = 0.0
+        for p in pvs:
+            struct = p.sum_insured_structure or {}
+            cf = struct.get("corporate_floater_sum_insured")
+            if cf is not None:
+                buffer_available += float(cf)
+        buffer_basis = "policy_data"
 
     per_claim, buffer_draw, exceeding = [], 0.0, 0
     for c in rows:
@@ -31,7 +36,7 @@ def corporate_buffer_simulation(sctx: SimContext) -> dict:
                "Actual buffer rules depend on policy wording (per-family caps, ordering)."]
     if not buffer_available:
         caveats.append("No corporate floater found in policy data; utilization not computable.")
-    value = {"corporate_buffer_available": round(buffer_available, 2),
+    value = {"corporate_buffer_available": round(buffer_available, 2), "buffer_basis": buffer_basis,
              "estimated_buffer_draw": round(buffer_draw, 2), "utilization_pct": util,
              "claims_exceeding_si": exceeding, "per_claim": per_claim}
     return sim_result(

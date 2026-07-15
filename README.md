@@ -166,3 +166,24 @@ Backend-only, read-only what-if simulation over **governed, activated** canonica
 
 *Not built (future):* simulation UI (gated until stable), Ask BenefitIQ, Wellness/Placement, PPT/export,
 benchmarking/k-anonymity, earned-premium loader (would upgrade denominators from written→earned).
+
+## What Sprint 6 delivers — Policy Terms / PDF Intelligence + Benefit Terms Loader (backend)
+Governed policy-wording foundation so Renewal Simulation becomes policy-wording aware. No AI/LLM, no auto-apply, no UI.
+
+- **Benefit-terms canonical model** (`models/canonical.py::BenefitTerm`) linked to `policy_version` (year-wise),
+  holding room_rent/icu_rent/copay/parent_copay/disease_cap/maternity_limit/newborn_cover/corporate_buffer/
+  exclusion/waiting_period/non_payable/daycare/endorsement, each with source evidence + status.
+- **Structured terms loader** (`services/terms/loader.py`, primary path) via the governed onboarding pipeline
+  (`file_kind='terms'`) → `status='confirmed'`, method `structured`, full lineage, idempotent, critical rows excluded.
+- **PDF Stage-1 extraction** (`services/terms/pdf_extract.py`) — deterministic text + rules/regex → **candidates only**
+  with page/snippet/confidence/method; nothing auto-applied.
+- **Terms review/confirm workflow** (`services/terms/service.py`) — reviewer confirms (optionally correcting the
+  value) or rejects/ignores (reason mandatory); every decision writes `TermsAudit` (before/after).
+- **Read APIs** (`api/routes_terms.py`): `POST /batches/{id}/terms/extract`, `GET /batches/{id}/terms/review`,
+  `POST /terms/{id}/confirm|reject`, `GET /terms`, `GET /terms/evidence/{id}`.
+- **Simulation integration** — room-rent/co-pay/parent/cap/maternity/buffer resolve **confirmed policy terms** first,
+  with `term_basis` = confirmed_policy_term / request_input / config_default and a caveat on any non-confirmed basis;
+  fully backward-compatible when no terms exist. Restricted terms are excluded from advisory use; Conditional carry caveats.
+- Alembic migration; ~19 new tests (128 total).
+
+*Not built (future):* AI/LLM extraction, OCR, endorsement diffing, simulation/terms UI (gated), benchmarking.

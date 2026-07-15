@@ -18,7 +18,7 @@ router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 
 FILE_KIND_TABLE = {
     "policy": "policy_master", "member": "member_master",
-    "claims": "claims", "client": "client_master",
+    "claims": "claims", "client": "client_master", "terms": "terms",
 }
 
 # In-process profile store: {(tenant, file_kind, signature): profile}. Replaced by

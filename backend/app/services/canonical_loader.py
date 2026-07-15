@@ -272,7 +272,9 @@ def _load_claims(db, tenant, version, batch, mapped, raw, quarantined, warn,
     return out
 
 
-_LOADERS = {"policy": _load_policy, "member": _load_member, "claims": _load_claims}
+from .terms.loader import load_terms as _load_terms
+_LOADERS = {"policy": _load_policy, "member": _load_member, "claims": _load_claims,
+            "terms": _load_terms}
 
 
 def load_canonical(db, *, tenant, actor, batch_id, file_default_year=None) -> dict:

@@ -54,6 +54,15 @@ REGISTRY = {
         _f("coverage_end", Tier.OPTIONAL, "date", mandatory=False, synonyms=["coverage end", "cover end"]),
         _f("policy_year", Tier.OPTIONAL, "int", mandatory=False, synonyms=["policy year", "policy period", "year"]),
     ],
+    "terms": [
+        _f("policy_number", Tier.CRITICAL, "str", synonyms=["policy number", "txt_policy_number"]),
+        _f("policy_year", Tier.OPTIONAL, "int", mandatory=False, synonyms=["policy year", "policy period", "year"]),
+        _f("term_type", Tier.CRITICAL, "str", synonyms=["term", "term type", "benefit", "clause", "benefit type"]),
+        _f("value", Tier.IMPORTANT, "num", mandatory=False, synonyms=["term value", "limit", "amount", "percent", "pct"]),
+        _f("unit", Tier.OPTIONAL, "str", mandatory=False, synonyms=["unit", "uom"]),
+        _f("text_value", Tier.OPTIONAL, "str", mandatory=False, synonyms=["text", "clause text", "description", "wording"]),
+        _f("applies_to", Tier.OPTIONAL, "str", mandatory=False, synonyms=["applies to", "scope"]),
+    ],
     "claims": [
         _f("policy_number", Tier.CRITICAL, "str", synonyms=["txt_policy_number"], f15="150004"),
         _f("claim_number", Tier.CRITICAL, "str", synonyms=["txt_claim_number", "claim id", "claim no"], f15="C21"),

@@ -196,6 +196,22 @@ class SimulationConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class TermsAudit(Base):
+    """Audit of every terms confirmation / rejection / ignore decision (before/after)."""
+    __tablename__ = "terms_audit"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    benefit_term_id: Mapped[str] = mapped_column(String(36), index=True)
+    action: Mapped[str] = mapped_column(String(16))       # confirm|reject|ignore
+    before_status: Mapped[str] = mapped_column(String(16), nullable=True)
+    after_status: Mapped[str] = mapped_column(String(16))
+    before_value: Mapped[str] = mapped_column(String(64), nullable=True)
+    after_value: Mapped[str] = mapped_column(String(64), nullable=True)
+    reason: Mapped[str] = mapped_column(Text, nullable=True)
+    actor: Mapped[str] = mapped_column(String(128))
+    at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)

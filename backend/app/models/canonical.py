@@ -7,7 +7,7 @@ where resolvable, links to a PolicyVersion (policy_version_id + policy_year). If
 policy year cannot be resolved the row still loads with linkage_status='unresolved'
 (never silently assigned). `claim_bill_component` enables future room-rent maths."""
 import uuid
-from sqlalchemy import String, Integer, Date, Numeric, Boolean, JSON
+from sqlalchemy import String, Integer, Date, Numeric, Boolean, JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from ..db.base import Base
 
@@ -147,3 +147,26 @@ class ClaimBillComponent(_Lineage, _YearLink, Base):
     amount_claimed: Mapped[float] = mapped_column(Numeric(18, 2), nullable=True)
     deduction_amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=True)
     room_rent_linked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class BenefitTerm(_Lineage, _YearLink, Base):
+    """Governed policy benefit term, linked to a PolicyVersion (year-wise). Holds
+    both PDF candidates (status='candidate') and governed terms (status='confirmed').
+    Simulation may use ONLY status='confirmed'. Every term carries source evidence."""
+    __tablename__ = "benefit_term"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    policy_number: Mapped[str] = mapped_column(String(100), index=True, nullable=True)
+    term_type: Mapped[str] = mapped_column(String(40), index=True)
+    # room_rent|icu_rent|copay|parent_copay|disease_cap|maternity_limit|newborn_cover|
+    # corporate_buffer|exclusion|waiting_period|non_payable|daycare|endorsement
+    value: Mapped[float] = mapped_column(Numeric(18, 4), nullable=True)   # pct as fraction OR amount
+    unit: Mapped[str] = mapped_column(String(16), nullable=True)          # pct|amount|months|text
+    text_value: Mapped[str] = mapped_column(Text, nullable=True)          # for exclusions / free text
+    applies_to: Mapped[dict] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="candidate")  # candidate|confirmed|rejected|ignored
+    method: Mapped[str] = mapped_column(String(16))                       # structured|pdf_regex|manual
+    confidence: Mapped[float] = mapped_column(Numeric(5, 3), nullable=True)
+    source_page: Mapped[int] = mapped_column(Integer, nullable=True)
+    source_snippet: Mapped[str] = mapped_column(Text, nullable=True)
+    reason: Mapped[str] = mapped_column(Text, nullable=True)              # reject/ignore reason
+    confirmed_by: Mapped[str] = mapped_column(String(128), nullable=True)

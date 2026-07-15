@@ -120,3 +120,13 @@ components only, package exclusion, proxy+lower-reliability when breakup missing
 reconciles (portfolio saving = Σ claim savings) and returns formula/inputs/source/included-excluded/assumptions/
 caveats/reliability. Migration: fourth Alembic revision chains on Sprint 4. Still future: simulation UI,
 Ask BenefitIQ, export, benchmarking, earned-premium loader.
+
+## Sprint 6 — Policy Terms / PDF Intelligence (backend-only)
+New: canonical BenefitTerm (linked to PolicyVersion, year-wise, status candidate/confirmed/rejected/ignored +
+source evidence), governance TermsAudit, registry 'terms' table, file_kinds terms + terms_pdf. Structured terms
+load via the governed pipeline -> status='confirmed' (method structured). PDF wording -> deterministic Stage-1
+regex extractor -> candidates only (never auto-applied); reviewer confirm/reject (reason) writes TermsAudit.
+Simulation (services/simulation) resolves confirmed terms first (resolve_lever: confirmed_policy_term >
+request_input > config_default) with term_basis + caveat; restricted terms excluded, conditional caveated;
+scope = the simulated claims' PolicyVersion(s) (no cross-year bleed). Migration: fifth Alembic revision chains on
+Sprint 5. No AI/LLM, no auto-apply, no UI. Still future: AI extraction, OCR, endorsement diffing, terms/renewal UI.

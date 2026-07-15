@@ -124,3 +124,35 @@ def eligible_claim_amount(claim) -> float:
 def is_package_claim(claim) -> bool:
     t = (claim.claim_type or "").strip().lower()
     return "package" in t or "fixed" in t
+
+
+def _scoped_policy_version_ids(sctx) -> list[str]:
+    # prefer the PolicyVersion(s) of the claims actually being simulated (respects year
+    # filters, avoids bleeding a different year's terms); else fall back to policy scope.
+    claim_ids = {c.policy_version_id for c in sctx.claims() if c.policy_version_id}
+    if claim_ids:
+        return list(claim_ids)
+    return [p.id for p in sctx.mc.scoped_policy_versions()]
+
+
+def confirmed_term(sctx, term_type):
+    """Confirmed, non-restricted policy term for the scoped PolicyVersion(s), or None."""
+    from ..terms.service import terms_lookup
+    return terms_lookup(sctx.db, sctx.tenant, _scoped_policy_version_ids(sctx), term_type)
+
+
+def resolve_lever(sctx, *, request_value, term_type, config_value):
+    """Governed lever resolution. Precedence: explicit request (what-if) -> confirmed
+    policy term -> config default. term_basis + caveat make the source explicit; only
+    a confirmed policy term is authoritative (others carry a caveat)."""
+    if request_value is not None:
+        return {"value": request_value, "term_basis": "request_input", "term_id": None,
+                "caveat": "Lever value is a user request input (what-if), not a confirmed policy term."}
+    term = confirmed_term(sctx, term_type)
+    if term and term.get("value") is not None:
+        cav = ("Confirmed policy term from a Conditional dataset (data-quality caveat)."
+               if term.get("conditional") else None)
+        return {"value": term["value"], "term_basis": "confirmed_policy_term",
+                "term_id": term["term_id"], "caveat": cav}
+    return {"value": config_value, "term_basis": "config_default", "term_id": None,
+            "caveat": "No confirmed policy term found for this scope; using config default value."}

@@ -5,13 +5,15 @@ Employer saving shifts to the member as out-of-pocket (member impact shown clear
 Parent co-pay applies only to claims linked to a parent member (Father/Mother)."""
 from __future__ import annotations
 
-from .base import SimContext, get_sim_config, sim_result, eligible_claim_amount
+from .base import SimContext, get_sim_config, sim_result, eligible_claim_amount, resolve_lever
 
 
 def copay_simulation(sctx: SimContext, *, copay_pct=None, parent_only=False) -> dict:
     key = "parent_copay_pct" if parent_only else "copay_pct"
-    cfg = get_sim_config(sctx.db, sctx.tenant, {key: copay_pct})
-    pct = cfg[key]
+    term_type = "parent_copay" if parent_only else "copay"
+    cfg = get_sim_config(sctx.db, sctx.tenant)
+    res = resolve_lever(sctx, request_value=copay_pct, term_type=term_type, config_value=cfg[key])
+    pct = res["value"]
     rows = sctx.claims()
     relmap = sctx.relation_map() if parent_only else {}
 
@@ -42,7 +44,9 @@ def copay_simulation(sctx: SimContext, *, copay_pct=None, parent_only=False) -> 
                "Illustrative what-if — not a change to actual claim settlement."]
     if parent_only:
         caveats.append("Parent co-pay applies only to claims linked to a parent (Father/Mother) member.")
-    value = {"proposed_copay_pct": pct, "pct_source": cfg["source"],
+    if res["caveat"]:
+        caveats.append(res["caveat"])
+    value = {"proposed_copay_pct": pct, "term_basis": res["term_basis"], "term_id": res["term_id"],
              "employer_saving": round(employer_saving, 2),
              "member_out_of_pocket": round(member_oop, 2),
              "revised_icr": revised_icr, "affected_claims": included, "per_claim": per_claim}

@@ -6,17 +6,17 @@ member bears). Maternity uses the maternity sub-limit scope (O-diagnosis / mater
 claim_type)."""
 from __future__ import annotations
 
-from .base import SimContext, get_sim_config, sim_result, eligible_claim_amount
+from .base import SimContext, get_sim_config, sim_result, eligible_claim_amount, resolve_lever
 
 
 def cap_simulation(sctx: SimContext, *, proposed_cap=None, disease=None, kind="disease") -> dict:
     cfg = get_sim_config(sctx.db, sctx.tenant)
-    cap = proposed_cap
-    if cap is None:
-        cap = cfg["maternity_sublimit"] if kind == "maternity" else cfg["disease_cap"]
-    if cap is None:
-        raise ValueError("a proposed cap (or configured default) is required")
-    cap = float(cap)
+    term_type = "maternity_limit" if kind == "maternity" else "disease_cap"
+    cfg_default = cfg["maternity_sublimit"] if kind == "maternity" else cfg["disease_cap"]
+    res = resolve_lever(sctx, request_value=proposed_cap, term_type=term_type, config_value=cfg_default)
+    if res["value"] is None:
+        raise ValueError("a proposed cap (or confirmed term / configured default) is required")
+    cap = float(res["value"])
     rows = sctx.claims()
 
     def in_scope(c):
@@ -52,7 +52,9 @@ def cap_simulation(sctx: SimContext, *, proposed_cap=None, disease=None, kind="d
                "Foundation simulation — subject to policy wording on the specific benefit."]
     if kind == "maternity" and scoped == 0:
         caveats.append("No maternity-identified claims in scope (diagnosis/claim_type); result is empty.")
-    value = {"proposed_cap": cap, "scope": (disease or kind), "employer_saving": round(employer_saving, 2),
+    if res["caveat"]:
+        caveats.append(res["caveat"])
+    value = {"proposed_cap": cap, "term_basis": res["term_basis"], "term_id": res["term_id"], "scope": (disease or kind), "employer_saving": round(employer_saving, 2),
              "employee_gap_risk": round(employee_gap, 2), "affected_claims": included,
              "claims_in_scope": scoped, "revised_icr": revised_icr, "per_claim": per_claim}
     return sim_result(

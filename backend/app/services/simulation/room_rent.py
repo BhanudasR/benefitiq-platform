@@ -13,13 +13,15 @@ breakup missing use PROXY only (lower reliability + caveat); never blanket-apply
 the whole portfolio. Operational ICR is reported unchanged alongside the revised view."""
 from __future__ import annotations
 
-from .base import SimContext, get_sim_config, sim_result, is_package_claim
+from .base import SimContext, get_sim_config, sim_result, is_package_claim, resolve_lever
 from ..profiling import parse_number
 
 
 def room_rent_simulation(sctx: SimContext, *, room_rent_pct=None) -> dict:
-    cfg = get_sim_config(sctx.db, sctx.tenant, {"room_rent_pct": room_rent_pct})
-    pct = cfg["room_rent_pct"]
+    cfg = get_sim_config(sctx.db, sctx.tenant)
+    res = resolve_lever(sctx, request_value=room_rent_pct, term_type="room_rent",
+                        config_value=cfg["room_rent_pct"])
+    pct = res["value"]
     rows = sctx.claims()
     billmap = sctx.bill_map([c.claim_number for c in rows])
 
@@ -71,8 +73,10 @@ def room_rent_simulation(sctx: SimContext, *, room_rent_pct=None) -> dict:
                        "saving (proxy would carry lower reliability). Do not extrapolate blindly.")
     caveats.append("Savings apply only to affected hospitalization claims where actual room rent "
                    "exceeds the allowed limit, on eligible linked bill components only.")
+    if res["caveat"]:
+        caveats.append(res["caveat"])
     value = {
-        "proposed_room_rent_pct": pct, "pct_source": cfg["source"],
+        "proposed_room_rent_pct": pct, "term_basis": res["term_basis"], "term_id": res["term_id"],
         "portfolio_saving": round(portfolio_saving, 2),
         "revised_icr": revised_icr, "affected_claims": included, "proxy_claims": proxy_claims,
         "per_claim": per_claim,
