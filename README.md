@@ -112,3 +112,26 @@ Sprint 3 expands canonical loading and makes manual mapping a first-class govern
 
 *Not built (future):* multi-year analytics, ICR/loss-ratio, room-rent maths, Renewal simulation,
 dashboards, AI. Sprint 3 only prepares the trusted multi-year canonical data.
+
+## What Sprint 4 delivers — Multi-Year Metric Engine + Core Analytics APIs
+Backend-only, read-only metric engine over **governed, activated** canonical data (no dashboards, no KPIs in frontend, no simulation):
+
+- **Governed base** (`services/metrics/base.py`): every metric sources only from ACTIVE dataset
+  versions, is tenant-scoped and PolicyVersion/policy-year aware, excludes non-loaded (critical/
+  quarantined) rows, propagates Conditional caveats + Restricted status, and returns a reconciling
+  evidence object (formula, value, numerator, denominator, source tables, policy_version/year,
+  included/excluded rows, caveats, data_quality_status, restricted/conditional, premium_basis, reliability).
+- **Metric groups**: portfolio, claims, ICR, multi-year trends, relation, hospital, ailment, large-claims.
+- **Formulas**: incurred = paid + outstanding; ICR (operational/paid/outstanding) = ÷ earned premium ×100,
+  falling back to **written premium with `basis='written'` + caveat** when earned is unavailable
+  (never silent). Medical-inflation **proxy** = YoY Δ average claim size (labelled a proxy).
+- **Large claims**: tenant-configurable `MetricConfig` threshold (default ₹10 lakh) — flagged as one-off
+  review candidates, never removed from ICR; no adjusted ICR.
+- **Read-only APIs** (`api/routes_metrics.py`): `/metrics/{portfolio,claims,icr,trends,relation,hospital,
+  ailment,large-claims}` + `/metrics/evidence/{metric}`, with filters (client, policy_id,
+  policy_version_id, policy_year, year_range, insurer, TPA, relation, ailment, hospital). Restricted
+  datasets return `restricted=true` + advisory-blocked.
+- Alembic migration for `metric_config`; ~16 new tests (96 total).
+
+*Not built (future):* dashboards/UI, Renewal simulation, projected/adjusted ICR, room-rent maths,
+AI Copilot, Wellness/Placement/PPT, benchmarking/k-anonymity.

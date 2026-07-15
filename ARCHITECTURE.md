@@ -86,3 +86,17 @@ across TPAs/insurers/clients/years; MappingAudit records every before/after deci
 
 Migrations: second Alembic revision chains on the Sprint 2 baseline. Still future: multi-year
 analytics, ICR, room-rent maths, Renewal simulation, dashboards, AI, policy-terms/benchmark loaders.
+
+## Sprint 4 — Multi-Year Metric Engine (Analytics layer, backend-only)
+services/metrics/: base.py (MetricContext + trust rollup + evidence/result builder), portfolio.py,
+claims.py, icr.py, trends.py, dimensions.py (relation/hospital/ailment), large_claims.py. New model:
+MetricConfig (tenant large-claim threshold, default Rs 10 lakh). Read-only API routes_metrics.py.
+
+Governance: metrics read ONLY rows whose dataset_version is ACTIVE; tenant-scoped; PolicyVersion/
+policy-year partitioned (no cross-year mixing); critical/quarantined rows never reached canonical so
+are structurally excluded; Conditional -> caveat, Restricted -> restricted=true + advisory_blocked.
+Incurred = paid + outstanding. ICR uses earned premium where present else written premium with
+basis='written' + caveat (no silent substitution). Medical inflation is an explicit YoY avg-claim-size
+proxy. Large claims flagged (configurable threshold) but never removed from ICR; no adjusted/projected
+ICR. Every metric returns a reconciling evidence object. Migration: third Alembic revision chains on
+Sprint 3. Still future: dashboards, Renewal simulation, adjusted ICR, room-rent maths, AI, benchmarking.

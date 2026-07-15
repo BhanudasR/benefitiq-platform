@@ -169,6 +169,18 @@ class MappingAudit(Base):
     at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class MetricConfig(Base):
+    """Tenant-scoped analytics configuration. Large-claim threshold defaults to
+    Rs 10 lakh; configurable per tenant now (per client/policy later)."""
+    __tablename__ = "metric_config"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+    large_claim_threshold: Mapped[float] = mapped_column(Numeric(18, 2), default=1000000)
+    currency: Mapped[str] = mapped_column(String(8), default="INR")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
