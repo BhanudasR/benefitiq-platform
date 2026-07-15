@@ -38,6 +38,7 @@ REGISTRY = {
         _f("policy_end_date", Tier.CRITICAL, "date", synonyms=["date_policy_end", "policy end date"], f15="150010"),
         _f("policy_premium", Tier.CRITICAL, "num", synonyms=["num_policy_premium", "total premium", "premium"], f15="150036"),
         _f("corporate_floater_sum_insured", Tier.IMPORTANT, "num", mandatory=False, synonyms=["num_corporate_floater_sum_insured", "corporate buffer"], f15="150013"),
+        _f("policy_year", Tier.OPTIONAL, "int", mandatory=False, synonyms=["policy year", "policy period", "year", "policy_period"]),
     ],
     "member_master": [
         _f("policy_number", Tier.CRITICAL, "str", synonyms=["txt_policy_number"], f15="150004"),
@@ -48,6 +49,10 @@ REGISTRY = {
         _f("gender", Tier.IMPORTANT, "code", synonyms=["txt_gender", "gender"], f15="150032"),
         _f("sum_insured", Tier.CRITICAL, "num", synonyms=["num_sum_insured", "sum insured", "si"], f15="150033"),
         _f("relationship", Tier.IMPORTANT, "code", synonyms=["txt_relationship_of_insured", "relation"], f15="150034"),
+        _f("family_id", Tier.OPTIONAL, "str", mandatory=False, synonyms=["family id", "family_id", "family reference"]),
+        _f("coverage_start", Tier.OPTIONAL, "date", mandatory=False, synonyms=["coverage start", "cover start", "enrolment date"]),
+        _f("coverage_end", Tier.OPTIONAL, "date", mandatory=False, synonyms=["coverage end", "cover end"]),
+        _f("policy_year", Tier.OPTIONAL, "int", mandatory=False, synonyms=["policy year", "policy period", "year"]),
     ],
     "claims": [
         _f("policy_number", Tier.CRITICAL, "str", synonyms=["txt_policy_number"], f15="150004"),
@@ -66,6 +71,11 @@ REGISTRY = {
         _f("copay_percentage", Tier.OPTIONAL, "num", mandatory=False, synonyms=["num_percentage_of_copayment", "co-pay %"]),
         _f("claim_status", Tier.CRITICAL, "code", synonyms=["txt_claim_status", "claim status", "status"], f15="150-status"),
         _f("hospital_is_network", Tier.OPTIONAL, "bool", mandatory=False, synonyms=["boo_hospital_is_network_provider", "cashless"]),
+        _f("outstanding_amount", Tier.OPTIONAL, "num", mandatory=False, synonyms=["num_outstanding_amount", "outstanding", "amount outstanding"]),
+        _f("incurred_amount", Tier.OPTIONAL, "num", mandatory=False, synonyms=["num_incurred_amount", "incurred", "incurred claim amount"]),
+        _f("claim_type", Tier.OPTIONAL, "str", mandatory=False, synonyms=["txt_claim_type", "type of claim", "cashless/reimbursement"]),
+        _f("provider_code", Tier.OPTIONAL, "str", mandatory=False, synonyms=["txt_provider_code", "provider", "network hospital", "provider id"]),
+        _f("policy_year", Tier.OPTIONAL, "int", mandatory=False, synonyms=["policy year", "policy period", "year"]),
     ],
 }
 

@@ -133,12 +133,12 @@ def test_analytics_ready_activate_and_load(db):
     v = svc.activate(db, tenant="t8", actor="rev", batch_id=b.id)
     assert v.readiness_status == gate.ANALYTICS_READY and v.restricted is False
     s1 = canonical_loader.load_canonical(db, tenant="t8", actor="rev", batch_id=b.id)
-    assert s1["claims_loaded"] == 4 and s1["rows_excluded_quarantined"] == 0
+    assert s1["loaded"] == 4 and s1["rows_excluded_quarantined"] == 0
     claims = db.query(Claim).filter(Claim.dataset_version_id == v.id).all()
     assert all(c.data_quality_caveat is False and c.restricted is False for c in claims)
     # idempotency: re-load adds nothing
     s2 = canonical_loader.load_canonical(db, tenant="t8", actor="rev", batch_id=b.id)
-    assert s2["claims_loaded"] == 0 and s2["claims_skipped_duplicate"] == 4
+    assert s2["loaded"] == 0 and s2["skipped_duplicate"] == 4
 
 
 # 9 -------------------------------------------------------------------------
@@ -170,7 +170,7 @@ def test_below_threshold_blocked_then_override_restricted(db):
     assert v.restricted is True and v.status == "ACTIVE"
     # load excludes the critical row; loaded rows carry caveat + restricted
     s = canonical_loader.load_canonical(db, tenant="t10", actor="admin1", batch_id=b.id)
-    assert s["rows_excluded_quarantined"] == 4 and s["claims_loaded"] == 1
+    assert s["rows_excluded_quarantined"] == 4 and s["loaded"] == 1
     c = db.query(Claim).filter(Claim.dataset_version_id == v.id).one()
     assert c.data_quality_caveat is True and c.restricted is True
     assert db.query(OverrideRecord).filter(OverrideRecord.dataset_version_id == v.id).count() == 1

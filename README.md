@@ -87,3 +87,28 @@ Sprint 2 turns the Sprint 1 engines into a durable, audited lifecycle (still no 
 
 *Not in scope (future):* analytics/KPIs, ICR, Renewal simulation, dashboards, AI Copilot — no
 analytics is computed in Sprint 2; this is the trusted-data foundation those will consume.
+
+## What Sprint 3 delivers — Multi-Year Canonical Loaders + Governed Manual Mapping
+Sprint 3 expands canonical loading and makes manual mapping a first-class governed workflow (still no analytics/KPIs/dashboards/simulation):
+
+- **Multi-year foundation** — `PolicyVersion` (business policy-year / renewal cycle) is distinct from
+  `DatasetVersion` (upload governance). Every canonical Policy/Member/Claim/BillComponent row links to
+  `policy_version_id` + `policy_year` where resolvable. Prior years are never overwritten; supports
+  1–5+ years dynamically; separate-per-year or combined multi-year files.
+- **Policy-year precedence** (`services/policy_version.py`): mapped year → claim/admission date within
+  a policy period → file-level default → else `linkage_status='unresolved'` (+ caveat, never silent).
+- **Expanded loaders** (`services/canonical_loader.py`): `load_policy`, `load_member` (year-wise
+  `member_coverage`), `load_claims` (policy-version + member/policy linkage, outstanding/incurred/
+  type/provider, `bill_breakup_available`), and bill-components (room/nursing/surgery today, wider
+  vocabulary supported). ACTIVE-only, critical rows excluded, caveat/restricted propagated, idempotent.
+- **LoadOutcome** — loaded / skipped / quarantined / warning / unresolved-linkage / caveat / restricted
+  / lineage-count / idempotency **plus** policy_years_detected, records_by_policy_year,
+  unresolved_policy_year_rows, duplicate_year_or_version_conflicts.
+- **Governed manual mapping** (`services/mapping_workflow.py`): confidence tiers (high/medium/low/
+  unmapped); Low + Unmapped block confirmation until the user maps or ignores-with-reason; user aliases
+  are learned (`MappingProfile` versioned, higher priority) and reused across TPAs/insurers/years;
+  every decision written to `MappingAudit` (before/after, confidence, user, reason).
+- **Alembic** second migration for all additions; ~14 new tests (80 total).
+
+*Not built (future):* multi-year analytics, ICR/loss-ratio, room-rent maths, Renewal simulation,
+dashboards, AI. Sprint 3 only prepares the trusted multi-year canonical data.

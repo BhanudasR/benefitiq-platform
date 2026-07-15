@@ -66,3 +66,23 @@ version + claim_number) and Sprint-2-scoped to claims + claim_bill_component onl
 Migrations: Alembic baseline under `migrations/` (target_metadata = Base.metadata; sqlite batch mode
 for dev, Postgres for prod). Dev/pilot may auto-create tables on startup (BIQ_AUTO_CREATE_TABLES).
 Still future: analytics/metric engine, Renewal simulation, policy/member loaders, dashboards, AI.
+
+## Sprint 3 — Multi-Year Canonical Loaders + Governed Manual Mapping
+Multi-year model: DatasetVersion (upload/governance) vs PolicyVersion (business policy-year/renewal).
+New tables: policy_version, member_coverage, mapping_audit. Canonical rows gain _YearLink
+(policy_version_id, policy_year, linkage_status) + retain _Lineage (+ caveat/restricted).
+
+Loaders (services/canonical_loader.py) dispatch by file_kind (policy|member|claims); ACTIVE-only,
+exclude quarantined/critical rows, propagate caveat/restricted, idempotent, audited. Policy-year
+precedence (services/policy_version.py): mapped year -> date-in-period -> file default -> unresolved
+(+caveat, never silent). Members load year-wise coverage (no overwrite); claims link to the correct
+policy_version and never mix years; bill components carry year lineage + a bill_breakup_available flag
+for future room-rent/renewal simulation. LoadOutcome adds policy-year detail.
+
+Manual mapping (services/mapping_workflow.py): system suggests -> user reviews -> corrects -> system
+learns aliases -> audited. Confidence tiers gate confirmation (Low/Unmapped block until mapped or
+ignored-with-reason). Aliases persist in a versioned MappingProfile (higher priority) and are reused
+across TPAs/insurers/clients/years; MappingAudit records every before/after decision.
+
+Migrations: second Alembic revision chains on the Sprint 2 baseline. Still future: multi-year
+analytics, ICR, room-rent maths, Renewal simulation, dashboards, AI, policy-terms/benchmark loaders.

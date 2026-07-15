@@ -51,7 +51,7 @@ def test_full_lifecycle_analytics_ready():
     act = c.post(f"/batches/{bid}/activate", headers=_tok("reviewer")).json()
     assert act["readiness_status"].startswith("Analytics Ready") and act["restricted"] is False
     load = c.post(f"/batches/{bid}/load-canonical", headers=_tok("reviewer")).json()
-    assert load["claims_loaded"] == 4 and load["data_quality_caveat"] is False
+    assert load["loaded"] == 4 and load["data_quality_caveat"] is False
 
 
 def test_rbac_analyst_cannot_approve_or_map():

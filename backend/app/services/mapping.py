@@ -13,6 +13,22 @@ from ..canonical.registry import REGISTRY, Tier
 
 _WS = re.compile(r"[^a-z0-9]+")
 
+# confidence tiers for the governed manual-mapping workflow
+CONF_HIGH = 0.85
+CONF_MEDIUM = 0.60
+
+
+def confidence_tier(confidence: float, has_canonical: bool) -> str:
+    """high = suggested/confirmable · medium = review required ·
+    low = manual required · unmapped = user must map or ignore."""
+    if not has_canonical:
+        return "unmapped"
+    if confidence >= CONF_HIGH:
+        return "high"
+    if confidence >= CONF_MEDIUM:
+        return "medium"
+    return "low"
+
 
 def normalize(h: str) -> str:
     """Lowercase, strip prefixes/punctuation so 'Num_Total_Claim_Paid' and
@@ -36,19 +52,24 @@ def _field_index(table: str):
     return specs, syn
 
 
-def suggest_mapping(headers: list[str], table: str) -> dict:
+def suggest_mapping(headers: list[str], table: str, aliases: dict | None = None) -> dict:
     """Return per-source-header suggestions and an overall (mandatory-weighted)
-    mapping confidence. method: 'exact' (synonym hit) | 'fuzzy' | 'none'."""
+    mapping confidence. method: 'alias' (user-confirmed) | 'exact' (synonym hit) |
+    'fuzzy' | 'none'. `aliases` = normalized-alias -> canonical (user-confirmed
+    mappings take highest priority so the platform learns across TPAs and years)."""
     if table not in REGISTRY:
         raise ValueError(f"unknown canonical table '{table}'")
     specs, syn = _field_index(table)
+    alias_map = {normalize(k): v for k, v in (aliases or {}).items() if v in specs}
     used_canonical: dict[str, tuple[str, float]] = {}  # canonical -> (source, conf)
     suggestions = []
 
     for h in headers:
         nh = normalize(h)
         canonical, conf, method, alts = None, 0.0, "none", []
-        if nh in syn:
+        if nh in alias_map:
+            canonical, conf, method = alias_map[nh], 1.0, "alias"
+        elif nh in syn:
             canonical, conf, method = syn[nh], 1.0, "exact"
         else:
             scored = sorted(
@@ -64,6 +85,7 @@ def suggest_mapping(headers: list[str], table: str) -> dict:
         suggestions.append({
             "source_header": h, "suggested_canonical": canonical, "confidence": conf,
             "method": method, "tier": tier, "alternatives": alts,
+            "confidence_tier": confidence_tier(conf, canonical is not None),
         })
         if canonical:
             # keep the highest-confidence source for a canonical field (dedupe collisions)

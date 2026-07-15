@@ -13,7 +13,7 @@ from ..api.deps import require_role
 from ..core.security import Role
 from ..db.session import get_db
 from ..models.governance import UploadBatch, DatasetVersion, ReviewItem
-from ..services import onboarding_service as svc, canonical_loader
+from ..services import onboarding_service as svc, canonical_loader, mapping_workflow
 
 router = APIRouter(prefix="/batches", tags=["onboarding-lifecycle"])
 
@@ -60,6 +60,25 @@ def confirm_mapping(batch_id: str, field_map: str = Form(...),
         raise HTTPException(400, "field_map must be a JSON object")
     return _run(svc.set_mapping, db, tenant=tenant, actor=actor, batch_id=batch_id,
                 field_map=fm, save_profile=save_profile, profile_name=profile_name)
+
+
+@router.get("/{batch_id}/mapping/review")
+def mapping_review(batch_id: str, principal: dict = Depends(require_role(Role.ANALYST)),
+                   db: Session = Depends(get_db)):
+    tenant, _, _ = _ctx(principal)
+    return _run(mapping_workflow.review, db, tenant=tenant, batch_id=batch_id)
+
+
+@router.post("/{batch_id}/mapping/manual")
+def mapping_manual(batch_id: str, raw_column: str = Form(...), decision: str = Form(...),
+                   canonical: str = Form(default=""), reason: str = Form(default=""),
+                   save_alias: bool = Form(default=False),
+                   principal: dict = Depends(require_role(Role.REVIEWER)),
+                   db: Session = Depends(get_db)):
+    tenant, actor, _ = _ctx(principal)
+    return _run(mapping_workflow.manual_decision, db, tenant=tenant, actor=actor,
+                batch_id=batch_id, raw_column=raw_column, decision=decision,
+                canonical=(canonical or None), reason=(reason or None), save_alias=save_alias)
 
 
 @router.post("/{batch_id}/validate")
@@ -140,10 +159,12 @@ def override(batch_id: str, reason: str = Form(...),
 
 
 @router.post("/{batch_id}/load-canonical")
-def load_canonical(batch_id: str, principal: dict = Depends(require_role(Role.REVIEWER)),
+def load_canonical(batch_id: str, file_default_year: int = Form(default=None),
+                   principal: dict = Depends(require_role(Role.REVIEWER)),
                    db: Session = Depends(get_db)):
     tenant, actor, _ = _ctx(principal)
-    return _run(canonical_loader.load_canonical, db, tenant=tenant, actor=actor, batch_id=batch_id)
+    return _run(canonical_loader.load_canonical, db, tenant=tenant, actor=actor,
+                batch_id=batch_id, file_default_year=file_default_year)
 
 
 @router.get("/{batch_id}")

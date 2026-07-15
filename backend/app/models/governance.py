@@ -90,6 +90,9 @@ class MappingProfile(Base):
     created_by: Mapped[str] = mapped_column(String(128))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     times_reused: Mapped[int] = mapped_column(Integer, default=0)
+    version: Mapped[int] = mapped_column(Integer, default=1)          # bumped on each confirmed change
+    priority: Mapped[int] = mapped_column(Integer, default=0)         # user-confirmed profiles rank higher
+    ignored_columns: Mapped[dict] = mapped_column(JSON, nullable=True)  # columns user marked "not required"
 
 
 class ReviewItem(Base):
@@ -145,6 +148,25 @@ class OverrideRecord(Base):
     reason: Mapped[str] = mapped_column(Text)                # mandatory
     resulting_status: Mapped[str] = mapped_column(String(48))  # Restricted / Not Reliable...
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class MappingAudit(Base):
+    """Audit of every manual mapping decision (map / ignore / alias). Captures the
+    before/after so mapping changes are fully traceable and versioned."""
+    __tablename__ = "mapping_audit"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    upload_batch_id: Mapped[str] = mapped_column(String(36), nullable=True)
+    mapping_profile_id: Mapped[str] = mapped_column(String(36), nullable=True)
+    mapping_profile_version: Mapped[int] = mapped_column(Integer, nullable=True)
+    raw_column: Mapped[str] = mapped_column(String(255))
+    selected_canonical: Mapped[str] = mapped_column(String(128), nullable=True)
+    previous_suggestion: Mapped[str] = mapped_column(String(128), nullable=True)
+    confidence_before: Mapped[float] = mapped_column(Numeric(5, 3), nullable=True)
+    decision: Mapped[str] = mapped_column(String(16))     # map|ignore|alias
+    reason: Mapped[str] = mapped_column(Text, nullable=True)
+    actor: Mapped[str] = mapped_column(String(128))
+    at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
 class AuditLog(Base):
