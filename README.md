@@ -187,3 +187,9 @@ Governed policy-wording foundation so Renewal Simulation becomes policy-wording 
 - Alembic migration; ~19 new tests (128 total).
 
 *Not built (future):* AI/LLM extraction, OCR, endorsement diffing, simulation/terms UI (gated), benchmarking.
+
+## Sprint 7 — Production UI foundation (frontend, API-driven)
+See `frontend/` — premium light React+TS+Vite+Tailwind SPA recreating the approved demo UX (all 22 tabs,
+decision-first storytelling, evidence/caveat/restricted UX) on governed APIs. Backend gains only an
+additive, config-driven CORS middleware + `/auth/me` echo (no business logic). No frontend KPI math,
+no mock values. Full detail in `frontend/README.md` and `PRODUCT_NOTES.md`.

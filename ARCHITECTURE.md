@@ -130,3 +130,9 @@ Simulation (services/simulation) resolves confirmed terms first (resolve_lever: 
 request_input > config_default) with term_basis + caveat; restricted terms excluded, conditional caveated;
 scope = the simulated claims' PolicyVersion(s) (no cross-year bleed). Migration: fifth Alembic revision chains on
 Sprint 5. No AI/LLM, no auto-apply, no UI. Still future: AI extraction, OCR, endorsement diffing, terms/renewal UI.
+
+## Sprint 7 — Frontend foundation
+frontend/ (React+TS+Vite+Tailwind) API-driven SPA: design system, 22-tab nav shell, auth/tenant/RBAC,
+typed governed API client, React Query, shared evidence/caveat/restricted renderer; Executive Summary +
+Data Onboarding wired to metrics/onboarding APIs, other tabs premium placeholders. Backend: additive
+config-driven CORS + /auth/me only. All numbers from governed APIs; no frontend KPI math.

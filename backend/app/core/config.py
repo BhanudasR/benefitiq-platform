@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     jwt_ttl_minutes: int = 60
     # Dev/pilot convenience: create tables on startup (use Alembic in prod -> set false)
     auto_create_tables: bool = True
+    # CORS: comma-separated allowed origins for the SPA (config-driven, not hard-coded)
+    cors_origins: str = "http://localhost:5173"
 
 
 settings = Settings()
