@@ -100,3 +100,9 @@ basis='written' + caveat (no silent substitution). Medical inflation is an expli
 proxy. Large claims flagged (configurable threshold) but never removed from ICR; no adjusted/projected
 ICR. Every metric returns a reconciling evidence object. Migration: third Alembic revision chains on
 Sprint 3. Still future: dashboards, Renewal simulation, adjusted ICR, room-rent maths, AI, benchmarking.
+
+## Production UI/UX principle (roadmap)
+The production frontend must recreate the approved demo's premium CXO/broker UX (all 22 tabs,
+decision-first storytelling, explainability + source-evidence chips) on governed, API-driven data — never
+hard-coded demo values or frontend KPI math. UI work begins only after metric/simulation APIs stabilise.
+See `PRODUCT_NOTES.md`.

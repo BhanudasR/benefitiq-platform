@@ -135,3 +135,9 @@ Backend-only, read-only metric engine over **governed, activated** canonical dat
 
 *Not built (future):* dashboards/UI, Renewal simulation, projected/adjusted ICR, room-rent maths,
 AI Copilot, Wellness/Placement/PPT, benchmarking/k-anonymity.
+
+## Production UI/UX principle
+Production BenefitIQ must preserve the approved demo's premium CXO/broker dashboard experience,
+module coverage (all 22 tabs) and decision-first storytelling, while replacing all mock/demo logic with
+governed API-driven production data. Backend-first for now; UI starts only after metric/simulation APIs
+are stable. Full detail in `PRODUCT_NOTES.md`.
