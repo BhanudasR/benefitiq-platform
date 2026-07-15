@@ -193,3 +193,9 @@ See `frontend/` — premium light React+TS+Vite+Tailwind SPA recreating the appr
 decision-first storytelling, evidence/caveat/restricted UX) on governed APIs. Backend gains only an
 additive, config-driven CORS middleware + `/auth/me` echo (no business logic). No frontend KPI math,
 no mock values. Full detail in `frontend/README.md` and `PRODUCT_NOTES.md`.
+
+## Sprint 8 — Renewal Intelligence + Savings Sandbox UI (frontend)
+Three strategic tabs (Renewal Intelligence, Benefit & Savings Sandbox, Balanced Benefit Design) wired to the
+governed metrics/simulation APIs (Sprints 4-6). Operational ICR always shown; Adjusted/Defendable ICR labelled
+separately; scenario controls call the backend (no client-side math, guard-tested); employee/member impact and
+evidence drawer surfaced. No backend changes. See `frontend/README.md`.

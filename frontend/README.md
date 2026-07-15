@@ -36,22 +36,18 @@ command may not be on PATH — use the module form:
 cd ../backend
 python -m pytest            # Windows: py -m pytest   (or: python3 -m pytest)
 ```
-If dependencies aren't installed yet: `pip install -r requirements.txt` (ideally in a venv).
-
-## What Sprint 7 delivers
-- Premium light design system (`src/components/ui/primitives.tsx`): KPI card, section header,
-  decision/action summary, evidence panel, source-evidence chips, data-quality badge,
-  caveat / restricted (advisory-blocked) banners, loading skeleton, empty & error states.
-- Navigation shell with **all 22 tabs** (`src/nav/tabs.ts`, `src/components/Shell.tsx`).
-- Auth (JWT via `/auth/token`) + tenant/RBAC context (`src/lib/auth.tsx`); typed governed
-  API client (`src/lib/api.ts`); React Query data layer.
-- **Executive Summary** and **Data Onboarding** wired end-to-end to real governed APIs;
-  the other 20 tabs are premium, state-scaffolded placeholders.
-- Governance UX everywhere: Restricted → advisory-blocked banner; Conditional → caveats;
-  No-Data → premium empty state.
-- Component gallery at `/gallery`.
-
-## Guardrails (enforced)
-No mock/demo KPI values · no frontend KPI/simulation math (guard test in
-`src/test/guard-no-kpi-math.test.ts`) · all official numbers come from the governed APIs ·
-`src/lib/format.ts` performs display formatting only.
+## Sprint 8 — Renewal Intelligence + Savings Sandbox
+Three strategic tabs are now wired to the governed backend APIs (no client-side math):
+- **Renewal Intelligence** (`src/pages/RenewalIntelligence.tsx`) — operational / paid / outstanding ICR
+  (`/metrics/icr`), YoY trend (`/metrics/trends`), large-claim one-off candidates (`/metrics/large-claims`),
+  and a **separate, labelled Adjusted / Defendable ICR** view (`/simulation/adjusted-icr`) — operational ICR
+  is always shown and never replaced.
+- **Benefit & Savings Sandbox** (`src/pages/SavingsSandbox.tsx`) — lever controls that **call**
+  `/simulation/{room-rent,copay,parent-copay,disease-cap,maternity-sublimit,corporate-buffer,scenario}`;
+  portfolio saving, revised ICR, affected claims, **employee/member impact**, `term_basis`, formula,
+  assumptions and caveats are all rendered from the API response.
+- **Balanced Benefit Design** (`src/pages/BalancedBenefitDesign.tsx`) — six-dimension lever scoring +
+  classification (Preferred / Good option / Use carefully / High employee impact / Not recommended unless
+  critical) from `/simulation/balanced-design`.
+- A polished **Evidence drawer** (`src/components/ui/sandbox.tsx`) is available for important numbers.
+- The no-frontend-KPI-math guard test covers the new pages; all 22 routes remain intact.

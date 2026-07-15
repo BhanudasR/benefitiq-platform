@@ -136,3 +136,8 @@ frontend/ (React+TS+Vite+Tailwind) API-driven SPA: design system, 22-tab nav she
 typed governed API client, React Query, shared evidence/caveat/restricted renderer; Executive Summary +
 Data Onboarding wired to metrics/onboarding APIs, other tabs premium placeholders. Backend: additive
 config-driven CORS + /auth/me only. All numbers from governed APIs; no frontend KPI math.
+
+## Sprint 8 — Renewal/Sandbox UI
+frontend/src/pages/{RenewalIntelligence,SavingsSandbox,BalancedBenefitDesign}.tsx wired to /metrics/* and
+/simulation/* ; evidence drawer + governance UX reused; api client extended (simulation, terms); no backend
+business-logic change; no frontend KPI/savings/scenario math (guard-tested); all 22 routes intact.

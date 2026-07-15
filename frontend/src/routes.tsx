@@ -4,6 +4,9 @@ import { Shell } from "./components/Shell";
 import { TABS } from "./nav/tabs";
 import { ExecutiveSummary } from "./pages/ExecutiveSummary";
 import { DataOnboarding } from "./pages/DataOnboarding";
+import { RenewalIntelligence } from "./pages/RenewalIntelligence";
+import { SavingsSandbox } from "./pages/SavingsSandbox";
+import { BalancedBenefitDesign } from "./pages/BalancedBenefitDesign";
 import { Placeholder } from "./pages/Placeholder";
 import { Login } from "./pages/Login";
 import { Gallery } from "./pages/Gallery";
@@ -17,6 +20,9 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 const WIRED: Record<string, React.ReactNode> = {
   "/executive-summary": <ExecutiveSummary />,
   "/data-onboarding": <DataOnboarding />,
+  "/renewal": <RenewalIntelligence />,
+  "/savings-sandbox": <SavingsSandbox />,
+  "/balanced-design": <BalancedBenefitDesign />,
 };
 
 export function AppRoutes() {

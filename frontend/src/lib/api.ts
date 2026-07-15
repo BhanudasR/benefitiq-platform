@@ -27,6 +27,15 @@ async function req(path: string, init: RequestInit = {}): Promise<any> {
 
 export type Principal = { sub: string; tenant_id: string; role: string };
 
+/** Build a query string from params (drops empty values). No business logic. */
+function qs(params: Record<string, any>): string {
+  const q = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
+      .map(([k, v]) => [k, String(v)])
+  ).toString();
+  return q ? `?${q}` : "";
+}
+
 export const api = {
   base: API_BASE,
   async login(username: string, tenant_id: string, role = "analyst"): Promise<string> {
@@ -47,5 +56,12 @@ export const api = {
   },
   batch(id: string): Promise<any> { return req(`/batches/${id}`); },
   reviewQueue(id: string): Promise<any> { return req(`/batches/${id}/review-queue`); },
+  // governed read-only simulation + terms (Sprint 4-6 backends); UI renders fields only
+  simulation(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/simulation/${name}${qs(params)}`);
+  },
+  terms(params: Record<string, any> = {}): Promise<any> {
+    return req(`/terms${qs(params)}`);
+  },
   logout() { setToken(null); },
 };

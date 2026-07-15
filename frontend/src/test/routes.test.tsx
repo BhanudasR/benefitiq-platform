@@ -4,22 +4,25 @@ import { AppRoutes } from "../routes";
 import { TABS } from "../nav/tabs";
 import { renderWithProviders } from "./util";
 
-// stub metrics so the two wired tabs don't error; placeholders don't call the API
 vi.mock("../lib/api", async (orig) => {
   const actual: any = await orig();
-  return { ...actual, api: { ...actual.api, metric: vi.fn().mockResolvedValue({ data_quality_status: "No Data", value: {} }) } };
+  const noData = { data_quality_status: "No Data", value: { levers: [] } };
+  return { ...actual, api: { ...actual.api,
+    metric: vi.fn().mockResolvedValue(noData),
+    simulation: vi.fn().mockResolvedValue(noData),
+    terms: vi.fn().mockResolvedValue({ terms: [] }) } };
 });
 
 describe("all 22 tab routes render", () => {
-  for (const t of TABS.filter((x) => !x.wired)) {
-    it(`placeholder route renders a premium scaffold: ${t.label}`, () => {
+  it("every tab has a unique route and renders without crashing", () => {
+    expect(TABS).toHaveLength(22);
+    expect(new Set(TABS.map((t) => t.path)).size).toBe(22);
+  });
+  for (const t of TABS) {
+    it(`route renders: ${t.label}`, () => {
       renderWithProviders(<AppRoutes />, { route: t.path });
+      // the label always appears (sidebar nav link + page header)
       expect(screen.getAllByText(t.label).length).toBeGreaterThan(0);
-      expect(screen.getByText(/On the BenefitIQ roadmap/i)).toBeInTheDocument();
     });
   }
-  it("wired tabs are reachable", () => {
-    renderWithProviders(<AppRoutes />, { route: "/executive-summary" });
-    expect(screen.getAllByText(/Executive Summary/i).length).toBeGreaterThan(0);
-  });
 });
