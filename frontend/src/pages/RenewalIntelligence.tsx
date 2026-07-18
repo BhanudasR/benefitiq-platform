@@ -17,10 +17,10 @@ export function RenewalIntelligence() {
   const large = useQuery({ queryKey: ["m", "large-claims"], queryFn: () => api.metric("large-claims") });
   const adjusted = useQuery({ queryKey: ["s", "adjusted-icr"], queryFn: () => api.simulation("adjusted-icr") });
 
-  if (icr.isLoading) return <><SectionHeader title="Renewal Intelligence" subtitle="Renewal defensibility & ICR" /><Skeleton rows={4} /></>;
-  if (icr.isError) return <><SectionHeader title="Renewal Intelligence" /><ErrorState onRetry={() => icr.refetch()} /></>;
+  if (icr.isLoading) return <><SectionHeader title="Overview" subtitle="Renewal defensibility & ICR" /><Skeleton rows={4} /></>;
+  if (icr.isError) return <><SectionHeader title="Overview" /><ErrorState onRetry={() => icr.refetch()} /></>;
   const status = icr.data?.data_quality_status || "No Data";
-  if (status === "No Data") return <><SectionHeader title="Renewal Intelligence" /><EmptyState message="No activated governed data yet. Complete Data Onboarding to build the renewal view." /></>;
+  if (status === "No Data") return <><SectionHeader title="Overview" /><EmptyState message="No activated governed data yet. Complete Data Onboarding to build the renewal view." /></>;
 
   const iv = icr.data.value;
   const blocked = icr.data.advisory_blocked || adjusted.data?.advisory_blocked;
@@ -30,7 +30,7 @@ export function RenewalIntelligence() {
 
   return (
     <div className="space-y-5">
-      <SectionHeader title="Renewal Intelligence" subtitle="Governed renewal defensibility & ICR"
+      <SectionHeader title="Overview" subtitle="Governed renewal defensibility & ICR — operational vs adjusted, trend and large-claim impact"
         right={<DataQualityBadge status={status} />} />
       <RestrictedBanner blocked={blocked} />
       <CaveatBanner caveats={icr.data.caveats} />

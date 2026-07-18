@@ -13,15 +13,15 @@ vi.mock("../lib/api", async (orig) => {
     terms: vi.fn().mockResolvedValue({ terms: [] }) } };
 });
 
-describe("all 22 tab routes render", () => {
+describe("all 20 top-level tab routes render", () => {
   it("every tab has a unique route and renders without crashing", () => {
-    expect(TABS).toHaveLength(22);
-    expect(new Set(TABS.map((t) => t.path)).size).toBe(22);
+    expect(TABS).toHaveLength(20);
+    expect(new Set(TABS.map((t) => t.path)).size).toBe(20);
   });
   for (const t of TABS) {
     it(`route renders: ${t.label}`, () => {
       renderWithProviders(<AppRoutes />, { route: t.path });
-      // the label always appears (sidebar nav link + page header)
+      // the label always appears (sidebar nav link + page/shell header)
       expect(screen.getAllByText(t.label).length).toBeGreaterThan(0);
     });
   }
