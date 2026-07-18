@@ -30,7 +30,17 @@ at canonical load — raw is never mutated.
 
 ## Security
 JWT bearer + role hierarchy (ADMIN>REVIEWER>ANALYST). Every principal carries tenant_id; all governance and
-canonical rows are tenant-scoped. Encryption at rest
+canonical rows are tenant-scoped. Encryption at rest.
+
+**RBAC → Settings/Admin evolution (future sprint, additive — no redesign):** the pilot ladder evolves into
+a persisted **User / Role / Permission / Assignment** model with a role→permission mapping and a
+permission-based dependency (`require_permission`) alongside `require_role`. Backend stays the **source of
+truth** for permissions; the frontend renders access from backend-provided permissions (no hard-coded
+access logic in UI). Tenant isolation, JWT issuance and AuditLog are unchanged — the expanded broker/client
+roles and permission groups are a superset of today's model. See `PRODUCT_NOTES.md` → "Settings / Admin
+Panel (roadmap)". Every user/role/permission change is audited; admin override requires a reason; deleting
+a user never removes audit history.
+
 ## Sprint 1 — Onboarding pipeline (Normalization layer)
 State machine advanced: UPLOADED -> **PROFILED -> MAPPING_SUGGESTED -> MAPPING_CONFIRMED ->
 VALIDATED -> DQ_SCORED -> REVIEW**. Engines are pure/testable (stdlib only) and operate on
