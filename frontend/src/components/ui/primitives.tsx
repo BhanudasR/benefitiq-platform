@@ -123,6 +123,31 @@ export function EvidencePanel({ evidence }: { evidence: Record<string, any> }) {
   );
 }
 
+/** Demo-parity decision layer. Every strategic screen answers the same four
+ *  questions so the CXO/broker reads a decision, not a data dump. Text is passed
+ *  in from the page (already derived from governed API values). */
+export function FourQuestions({ soWhat, why, next, trust }:
+  { soWhat: React.ReactNode; why: React.ReactNode; next: React.ReactNode; trust: React.ReactNode }) {
+  const rows: Array<[string, React.ReactNode]> = [
+    ["So what?", soWhat],
+    ["Why?", why],
+    ["What next?", next],
+    ["Can I trust this number?", trust],
+  ];
+  return (
+    <Card className="p-5">
+      <div data-testid="four-questions" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {rows.map(([q, a]) => (
+          <div key={q}>
+            <div className="text-xs font-semibold uppercase tracking-wide text-brand mb-1">{q}</div>
+            <div className="text-sm text-ink/80">{a}</div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export function Skeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3" data-testid="skeleton" aria-busy="true">

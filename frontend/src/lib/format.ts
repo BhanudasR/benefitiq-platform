@@ -19,6 +19,16 @@ export function fmtPercent(v: number | null | undefined): string {
   return `${v}%`;
 }
 
+/**
+ * The API returns "share" values as a FRACTION (e.g. 0.4321 = 43.21%). This is a
+ * display-only formatter: the Intl percent style renders the fraction for the eye.
+ * It performs no business arithmetic on our side — the share is computed server-side.
+ */
+export function fmtShare(v: number | null | undefined): string {
+  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  return new Intl.NumberFormat("en-IN", { style: "percent", maximumFractionDigits: 1 }).format(v);
+}
+
 export function fmtValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
   if (typeof v === "number") return fmtNumber(v);

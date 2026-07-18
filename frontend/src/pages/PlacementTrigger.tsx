@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { fmtCurrency, fmtPercent } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge, CaveatBanner,
-  RestrictedBanner, Skeleton, EmptyState, ErrorState,
+  RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, MiniTrend } from "../components/ui/sandbox";
 
@@ -97,6 +97,12 @@ export function PlacementTrigger() {
           ]} />
         </Card>
       )}
+
+      <FourQuestions
+        soWhat={hasGovernedTrigger ? "A governed placement decision is available below." : "Whether to defend the incumbent or go to market is a governed backend decision; the evidence for it is live now."}
+        why={largeClaims.length > 0 ? `${largeClaims.length} large one-off claim(s) strengthen an incumbent-defence case before any RFQ.` : "Loss experience is broad-based rather than event-driven, which shapes the placement approach."}
+        next="Use the large-claim evidence to defend the incumbent first; trigger an RFQ only if the governed decision recommends it."
+        trust={`Evidence from governed ICR, adjusted-ICR and large-claims APIs on ${status} data. The placement trigger is never computed in the browser — a pending-state is shown until the backend provides it.`} />
 
       <button className="text-xs font-medium text-brand hover:underline"
         onClick={() => setEv({ title: "Placement evidence", data: icr.data })}>

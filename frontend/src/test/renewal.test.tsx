@@ -14,7 +14,7 @@ const ICR = { data_quality_status: "Analytics Ready", advisory_blocked: false, c
   formula: "incurred/earned x100", numerator: 1, denominator: 2, source_tables: ["claim"],
   value: { operational_icr: 73.64, paid_icr: 72.5, outstanding_icr: 1.14, incurred: 1620000, earned_premium: 2200000 } };
 const TRENDS = { data_quality_status: "Analytics Ready", value: { series: [{ policy_year: 2025, premium: 1000000, incurred: 420000, operational_icr: 42.0 }] } };
-const LARGE = { data_quality_status: "Analytics Ready", value: { large_claims: [{ claim_number: "CLM-3", policy_year: 2026, incurred: 1200000, one_off_review_candidate: true }] } };
+const LARGE = { data_quality_status: "Analytics Ready", value: { large_claim_count: 1, large_claim_incurred: 1200000, large_claim_incurred_share: 0.42, threshold: 1000000, threshold_source: "default", large_claims: [{ claim_number: "CLM-3", policy_year: 2026, incurred: 1200000, one_off_review_candidate: true }] } };
 const ADJ = { data_quality_status: "Analytics Ready", advisory_blocked: false, formula: "AdjustedICR=...",
   value: { operational_icr: 73.64, adjusted_icr: 26.0, adjusted_label: "Adjusted ICR / Defendable ICR view based on one-off claim review assumptions." } };
 
@@ -45,6 +45,16 @@ describe("Renewal Intelligence (API-driven)", () => {
     (api.simulation as any).mockResolvedValue(ADJ);
     renderWithProviders(<RenewalIntelligence />);
     await waitFor(() => expect(screen.getByTestId("restricted-banner")).toBeInTheDocument());
+  });
+
+  it("shows the large-claim / one-off impact summary and the 4-questions decision block", async () => {
+    wireMetric({ icr: ICR, trends: TRENDS, "large-claims": LARGE });
+    (api.simulation as any).mockResolvedValue(ADJ);
+    renderWithProviders(<RenewalIntelligence />);
+    await waitFor(() => expect(screen.getByTestId("large-count")).toHaveTextContent("1"));
+    expect(screen.getByTestId("large-share")).toHaveTextContent("42%");
+    expect(screen.getByTestId("four-questions")).toBeInTheDocument();
+    expect(screen.getByText(/Can I trust this number/i)).toBeInTheDocument();
   });
 
   it("evidence drawer opens for a metric", async () => {

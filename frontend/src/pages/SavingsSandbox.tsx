@@ -3,7 +3,7 @@ import { api } from "../lib/api";
 import { fmtCurrency, fmtPercent, fmtNumber } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge, CaveatBanner,
-  RestrictedBanner, Skeleton, EmptyState, ErrorState,
+  RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, ScenarioControl, EmployeeImpactCallout } from "../components/ui/sandbox";
 
@@ -108,6 +108,11 @@ export function SavingsSandbox() {
             )}
             <button className="mt-3 text-xs font-medium text-brand hover:underline" onClick={() => setEv(true)}>View full evidence →</button>
           </Card>
+          <FourQuestions
+            soWhat={saving !== undefined ? `${lever.label} could save ${fmtCurrency(saving)} and move ICR to ${fmtPercent(revisedIcr)}.` : `${lever.label} scenario computed by the governed simulation.`}
+            why="The saving, revised ICR and affected claims are all returned by the backend simulation — never calculated in the browser."
+            next={(memberOop !== undefined || gap !== undefined) ? "Weigh the employer saving against the employee/member impact shown above before recommending this lever." : "Compare this lever against others in Balanced Benefit Design before recommending it."}
+            trust={`Figures from the governed simulation API on ${r.data_quality_status} data; term_basis ${v.term_basis || "—"}. Formula and assumptions are shown above; open full evidence for sources.`} />
         </div>
       )}
       <EvidenceDrawer open={ev} onClose={() => setEv(false)} title="Simulation evidence" evidence={r || null} />

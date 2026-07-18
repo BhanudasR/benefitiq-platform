@@ -83,3 +83,25 @@ stating the decision each will answer — never mock numbers.
   (`src/components/ui/sandbox.tsx`) is available for important numbers.
 - The no-frontend-KPI-math guard test covers all pages; **20 top-level routes** + nested Renewal/Wellness
   sub-routes are all exercised by the route tests.
+
+## Sprint 9 — Renewal Intelligence complete (6 sub-tabs, demo-parity depth)
+All six Renewal sub-tabs are now built to the demo portal's analytical depth, each answering the four
+questions (So what / Why / What next / Can I trust it) via a shared `FourQuestions` block
+(`components/ui/primitives.tsx`). Every figure is governed and API-driven; no browser-side math.
+- **Overview** — Operational/Paid/Outstanding ICR, premium basis, multi-year trend, a **large-claim /
+  one-off impact** summary (`/metrics/large-claims`), a separate labelled Adjusted / Defendable ICR view,
+  caveats and evidence.
+- **Claims Drivers** — frequency vs severity, paid-vs-outstanding movement (+ governed YoY from
+  `/metrics/trends`), large-claim effect, claim-type/status split, and **relation / hospital / ailment**
+  concentration from `/metrics/{relation,hospital,ailment}` (Option A). Each dimension has a premium
+  governed empty/caveat state; nothing is computed in the browser. `fmtShare` renders API share fractions
+  as percentages (display-only Intl formatting, no arithmetic).
+- **Benefit & Savings Sandbox** — 7 levers as controls; all figures from `/simulation/*`.
+- **Balanced Benefit Design** — 6-dimension scoring + classification + a **recommended-design summary**.
+- **Recommended Strategy** — governed composition of ICR / adjusted-ICR / balanced-design; the defend /
+  negotiate / redesign call renders only from a backend field, otherwise a **governed pending-state** (no
+  frontend recommendation math).
+- **Placement Trigger / Next Best Action** — governed evidence (large one-off claims) with a **governed
+  pending-state** for the trigger; no frontend trigger math.
+- Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
+  plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.

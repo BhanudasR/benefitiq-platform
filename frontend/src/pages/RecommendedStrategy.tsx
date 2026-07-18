@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { fmtCurrency, fmtPercent } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge, CaveatBanner,
-  RestrictedBanner, Skeleton, EmptyState, ErrorState,
+  RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, LeverClassificationBadge } from "../components/ui/sandbox";
 
@@ -82,6 +82,17 @@ export function RecommendedStrategy() {
         )}
       </Card>
 
+      <Card className="p-4">
+        <div className="text-sm font-medium mb-2">{"Operational vs Adjusted / Defendable ICR"}</div>
+        <div className="grid grid-cols-2 gap-4">
+          <div><div className="text-xs text-muted">Operational ICR (unchanged)</div>
+            <div className="text-xl font-semibold" data-testid="rs-op-icr">{fmtPercent(iv.operational_icr)}</div></div>
+          <div><div className="text-xs text-muted">{"Adjusted / Defendable ICR"}</div>
+            <div className="text-xl font-semibold text-warn" data-testid="rs-adj-icr">{adj ? fmtPercent(adj.adjusted_icr) : "—"}</div></div>
+        </div>
+        <p className="text-xs text-muted mt-2">{"Operational ICR is never replaced; the Adjusted / Defendable view reflects one-off claim-review assumptions from the governed simulation."}</p>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-4">
           <div className="text-sm font-medium mb-2">Employer impact — defensible saving levers</div>
@@ -120,6 +131,12 @@ export function RecommendedStrategy() {
           <div className="text-sm text-ink">{String(recommendedDesign)}</div>
         </Card>
       )}
+
+      <FourQuestions
+        soWhat={decision ? `Recommended position: ${String(decision)}.` : "The governed renewal stance is composed from ICR, adjusted ICR and scored levers; the explicit call surfaces from the backend strategy engine."}
+        why={adj ? `Operational ICR ${fmtPercent(iv.operational_icr)} vs Adjusted / Defendable ${fmtPercent(adj.adjusted_icr)}, weighed against defensible saving levers.` : `Operational ICR ${fmtPercent(iv.operational_icr)}, weighed against defensible saving levers.`}
+        next="Use the defensible levers to defend the account; where employee-impact levers are needed, sequence them with change management."
+        trust={`Composed only from governed metric and simulation APIs on ${status} data. The defend / negotiate / redesign call is never computed in the browser — a pending-state is shown until the backend returns it.`} />
 
       <button className="text-xs font-medium text-brand hover:underline"
         onClick={() => setEv({ title: "Strategy evidence", data: icr.data })}>

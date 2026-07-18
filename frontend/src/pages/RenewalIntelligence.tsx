@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { fmtCurrency, fmtPercent } from "../lib/format";
+import { fmtCurrency, fmtPercent, fmtNumber, fmtShare } from "../lib/format";
 import {
   SectionHeader, KpiCard, DecisionSummary, DataQualityBadge, CaveatBanner,
-  RestrictedBanner, Card, Skeleton, EmptyState, ErrorState,
+  RestrictedBanner, Card, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, MiniTrend } from "../components/ui/sandbox";
 
@@ -25,8 +25,18 @@ export function RenewalIntelligence() {
   const iv = icr.data.value;
   const blocked = icr.data.advisory_blocked || adjusted.data?.advisory_blocked;
   const series = trends.data?.value?.series || [];
-  const largeClaims = large.data?.value?.large_claims || [];
+  const largeVal = large.data?.value;
+  const largeClaims = largeVal?.large_claims || [];
   const adj = adjusted.data?.value;
+  const latestYoy = (trends.data?.value?.yoy || []).slice(-1)[0];
+
+  const largeLine = largeVal && largeVal.large_claim_count
+    ? `; ${fmtNumber(largeVal.large_claim_count)} large one-off claim(s) contribute ${fmtShare(largeVal.large_claim_incurred_share)} of incurred`
+    : "";
+  const whyText = `Incurred is paid plus outstanding over ${icr.data.premium_basis || "written"} premium${largeLine}.`;
+  const nextText = latestYoy && latestYoy.icr_pct != null
+    ? `ICR moved ${fmtPercent(latestYoy.icr_pct)} year-on-year — review Claims Drivers, then test levers in the Sandbox before setting the renewal stance.`
+    : "Review Claims Drivers, then test savings levers in the Sandbox before setting the renewal stance.";
 
   return (
     <div className="space-y-5">
@@ -75,6 +85,22 @@ export function RenewalIntelligence() {
         </Card>
       )}
 
+      {largeVal && (
+        <Card className="p-4 border-l-4 border-l-amber-400">
+          <div className="text-sm font-medium mb-2">{"Large-claim / one-off impact on renewal"}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div><div className="text-xs text-muted">Large claims</div>
+              <div className="text-xl font-semibold" data-testid="large-count">{fmtNumber(largeVal.large_claim_count)}</div>
+              <div className="text-xs text-muted mt-0.5">at or above {fmtCurrency(largeVal.threshold)} ({largeVal.threshold_source})</div></div>
+            <div><div className="text-xs text-muted">Large-claim incurred</div>
+              <div className="text-xl font-semibold">{fmtCurrency(largeVal.large_claim_incurred)}</div></div>
+            <div><div className="text-xs text-muted">Share of total incurred</div>
+              <div className="text-xl font-semibold" data-testid="large-share">{fmtShare(largeVal.large_claim_incurred_share)}</div></div>
+          </div>
+          <p className="text-xs text-muted mt-2">{"One-off review candidates only — they remain in Operational ICR. See the Adjusted / Defendable view above for the one-off-excluded scenario."}</p>
+        </Card>
+      )}
+
       {largeClaims.length > 0 && (
         <Card className="p-4">
           <div className="text-sm font-medium mb-2">Large claims — one-off review candidates</div>
@@ -86,6 +112,12 @@ export function RenewalIntelligence() {
           ]} />
         </Card>
       )}
+
+      <FourQuestions
+        soWhat={`Portfolio ICR is ${status} at ${fmtPercent(iv.operational_icr)} operational — this frames the renewal ask.`}
+        why={whyText}
+        next={nextText}
+        trust={`All figures from governed metric APIs (ICR, trends, large-claims); data quality ${status}. Use "View evidence" for formula, numerator, denominator and sources.`} />
 
       <EvidenceDrawer open={!!ev} onClose={() => setEv(null)} title={ev?.title} evidence={ev?.data || null} />
     </div>

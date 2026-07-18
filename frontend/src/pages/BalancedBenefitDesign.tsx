@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { fmtCurrency, fmtPercent } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge, CaveatBanner,
-  RestrictedBanner, Skeleton, EmptyState, ErrorState,
+  RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, LeverClassificationBadge } from "../components/ui/sandbox";
 
@@ -25,6 +25,8 @@ export function BalancedBenefitDesign() {
   if (q.isError) return <><SectionHeader title="Balanced Benefit Design" /><ErrorState onRetry={() => q.refetch()} /></>;
   const status = q.data?.data_quality_status || "No Data";
   const levers = q.data?.value?.levers || [];
+  const recommended = q.data?.value?.recommended_design;
+  const preferred = levers.filter((l: any) => ["Preferred", "Good option"].includes(l.classification));
   if (status === "No Data" || levers.length === 0)
     return <><SectionHeader title="Balanced Benefit Design" /><EmptyState message="No activated governed data yet. Load claims + policy data to score benefit-design levers." /></>;
 
@@ -56,6 +58,23 @@ export function BalancedBenefitDesign() {
           </Card>
         ))}
       </div>
+      <Card className="p-4 border-l-4 border-l-green-400">
+        <div className="text-xs font-semibold uppercase tracking-wide text-good mb-1">Recommended design summary</div>
+        {recommended ? (
+          <div className="text-sm text-ink">{String(recommended)}</div>
+        ) : preferred.length > 0 ? (
+          <div className="text-sm text-ink">Lead with the lower-friction levers: {preferred.map((l: any) => String(l.lever).split("_").join(" ")).join(", ")} — strongest saving-to-impact balance on governed scoring.</div>
+        ) : (
+          <div className="text-sm text-muted">Recommended design will surface once the governed scoring returns preferred levers.</div>
+        )}
+      </Card>
+
+      <FourQuestions
+        soWhat={preferred.length > 0 ? `${preferred.length} lever(s) balance saving with low employee friction and are defensible at renewal.` : "Lever trade-offs are scored so savings never come at hidden employee cost."}
+        why="Each lever is scored on expected saving, ICR impact, employee friction, feasibility, renewal defensibility and data reliability — classification blends all six, not savings alone."
+        next="Model the preferred levers in the Benefit & Savings Sandbox, then carry them into Recommended Strategy."
+        trust={`Scores and classifications come from the governed balanced-design simulation on ${status} data. Open evidence for the full response.`} />
+
       <button className="text-xs font-medium text-brand hover:underline" onClick={() => setEv(true)}>View evidence →</button>
       <EvidenceDrawer open={ev} onClose={() => setEv(false)} title="Balanced design evidence" evidence={q.data} />
     </div>
