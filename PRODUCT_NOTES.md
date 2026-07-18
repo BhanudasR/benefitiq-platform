@@ -135,3 +135,41 @@ sprint evolves this **additively**: introduce persisted User / Role / Permission
 role→permission mapping, and a permission-based dependency (e.g. `require_permission`) alongside the
 existing `require_role`; map the expanded broker/client roles onto permission groups. No change to tenant
 isolation, JWT issuance or audit is required — the ladder is replaced by a superset, not redesigned.
+
+## Procedure Intelligence Repository + Benchmark Master (roadmap — future sprint)
+> **BenefitIQ must maintain a governed, versioned Procedure Intelligence Repository — a benchmark master
+> of ~350–500 hospitalization procedures (covering >95% of Indian corporate GMC hospitalization cost),
+> organized by clinical specialty and enriched with market-cost, cap, co-pay, frequency, severity, LOS,
+> cashless-%, savings-potential and employee-impact benchmarks. It is advisory intelligence, not absolute
+> tariff truth, and every benchmark carries source, confidence and last-updated.**
+
+**Not a flat procedure list.** Model it as a governed hierarchy:
+**Specialty → Procedure Group → Procedure → Benchmark Rule → Benefit Design Rule.** Specialties (per the
+input doc): Ophthalmology · ENT · General Surgery · Gastroenterology · Urology · Nephrology · Obstetrics &
+Gynecology · Orthopedics · Cardiology · Cardiothoracic · Neurology & Neurosurgery · Oncology · Pulmonology ·
+Plastic & Reconstructive · Vascular · Pediatric Surgery · Dental (hospitalization) · Dermatology · Others
+(~350 procedures target; mature target 350–500).
+
+**Consumers (this repository powers, it does not replace, these modules):** Benefits & Benchmarking ·
+Ailment Intelligence · Renewal Intelligence · Benefit & Savings Sandbox · Balanced Benefit Design ·
+Placement Intelligence · Ask BenefitIQ · Client Pack / PPT exports.
+
+**Candidate fields (benchmark master row):** `procedure_code` · `specialty` · `procedure_group` ·
+`procedure_name` · `aliases` · `ICD10_mapping` · `procedure_mapping` · `market_cost_min` ·
+`market_cost_median` · `market_cost_max` · `city_tier` · `hospital_tier` · `suggested_cap` ·
+`suggested_copay` · `frequency_band` · `severity_band` · `average_LOS` · `typical_age_band` ·
+`cashless_ratio` · `recommended_benefit_design` · `renewal_savings_potential` · `employee_experience_impact`
+· `benchmark_source` · `source_confidence` · `last_updated` · `evidence_notes` · `active_flag`. (~25–30
+attributes/procedure. Example: `ORTH-001` Total Knee Replacement, ICD-10 M17, median ₹3.5L, suggested cap
+₹3.5L, co-pay 10%, LOS 5d, cashless 92%, design "Corporate Buffer", source Market/CGHS/PM-JAY/Broker.)
+
+**Gold Standard rules (governance):** (1) no benchmark used without source + confidence; (2) every
+benchmark carries a last-updated date; (3) city-tier and hospital-tier variation supported; (4) employee
+impact shown wherever a cap/co-pay is recommended; (5) a suggested cap is a *candidate*, never an automatic
+recommendation; (6) stale benchmarks are caveated; (7) the repository is governed and **versioned**;
+(8) simulation may use it **only** with evidence and caveats surfaced; (9) the frontend never computes
+benchmark logic — backend is the source of truth; (10) no mock pricing in production; (11) benchmarks are
+**advisory intelligence, not absolute tariff truth**; (12) procedure mapping must tolerate TPA/hospital
+aliases and free-text claim-description variation (reuse the governed mapping/alias discipline from
+onboarding). **Do not implement until separately approved** — roadmap capability and architecture direction
+only; sequence it as a future sprint after the current UI/navigation work.

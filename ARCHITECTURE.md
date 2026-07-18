@@ -77,6 +77,20 @@ Migrations: Alembic baseline under `migrations/` (target_metadata = Base.metadat
 for dev, Postgres for prod). Dev/pilot may auto-create tables on startup (BIQ_AUTO_CREATE_TABLES).
 Still future: analytics/metric engine, Renewal simulation, policy/member loaders, dashboards, AI.
 
+## Procedure Intelligence Repository + Benchmark Master (future — governed reference/intelligence layer)
+A governed, **versioned** reference layer (distinct from tenant claim data — it is cross-tenant benchmark
+intelligence, not client PII) modelling **Specialty → Procedure Group → Procedure → Benchmark Rule →
+Benefit Design Rule** for ~350–500 procedures. It sits beside the canonical warehouse and **feeds** the
+analytics/metric and simulation engines; it never lets the frontend compute pricing. Design principles:
+every benchmark row carries `benchmark_source` + `source_confidence` + `last_updated` (+ `evidence_notes`);
+city-tier / hospital-tier variation is first-class; a `suggested_cap` is a candidate that the metric/
+simulation engine surfaces **with evidence + caveats + employee-impact**, never as an automatic tariff;
+stale rows are flagged; `active_flag` + version history preserve auditability. Procedure mapping reuses the
+onboarding mapping/alias discipline (aliases + ICD-10 + free-text claim-description tolerance) so
+TPA/hospital naming variation resolves to a governed procedure. Simulation reads it read-only; it is
+advisory intelligence, not absolute truth. See `PRODUCT_NOTES.md` → "Procedure Intelligence Repository +
+Benchmark Master (roadmap)". Not implemented — direction only.
+
 ## Sprint 3 — Multi-Year Canonical Loaders + Governed Manual Mapping
 Multi-year model: DatasetVersion (upload/governance) vs PolicyVersion (business policy-year/renewal).
 New tables: policy_version, member_coverage, mapping_audit. Canonical rows gain _YearLink
