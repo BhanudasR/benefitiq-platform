@@ -196,6 +196,34 @@ class SimulationConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class RecommendationConfig(Base):
+    """Tenant-scoped governed thresholds for the recommendation engines (Sprint 10).
+    ICR bands, incumbent-defensibility / RFQ-readiness cutoffs and confidence weights
+    live here so decision thresholds are governed, versioned, auditable and explainable
+    — never hidden only inside code. Safe defaults apply when no tenant row exists.
+    ICR bands are percentages (e.g. 120 = 120%); cutoffs/weights are fractions (0..1)."""
+    __tablename__ = "recommendation_config"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+    # ICR bands (operational ICR %): <=defend comfortable; <=negotiate moderate; <=redesign high; above => place
+    icr_defend_max: Mapped[float] = mapped_column(Numeric(8, 2), default=100.0)
+    icr_negotiate_max: Mapped[float] = mapped_column(Numeric(8, 2), default=120.0)
+    icr_redesign_max: Mapped[float] = mapped_column(Numeric(8, 2), default=150.0)
+    # one-off large-claim incurred share (fraction) at/above which loss is "event-driven" and defendable
+    one_off_share_defend_min: Mapped[float] = mapped_column(Numeric(6, 4), default=0.30)
+    # YoY ICR worsening (percentage points) beyond which the trend is treated as adverse
+    trend_worsening_pct: Mapped[float] = mapped_column(Numeric(8, 2), default=10.0)
+    # placement decision cutoffs (fractions 0..1)
+    incumbent_defence_strong_min: Mapped[float] = mapped_column(Numeric(6, 4), default=0.65)
+    rfq_ready_min: Mapped[float] = mapped_column(Numeric(6, 4), default=0.60)
+    # confidence model weights (fractions; should sum to ~1)
+    weight_data_quality: Mapped[float] = mapped_column(Numeric(6, 4), default=0.60)
+    weight_evidence_completeness: Mapped[float] = mapped_column(Numeric(6, 4), default=0.40)
+    config_version: Mapped[str] = mapped_column(String(32), default="v1-default")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class TermsAudit(Base):
     """Audit of every terms confirmation / rejection / ignore decision (before/after)."""
     __tablename__ = "terms_audit"

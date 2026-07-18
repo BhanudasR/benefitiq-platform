@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .api import (routes_health, routes_auth, routes_upload, routes_onboarding,
                       routes_batches, routes_metrics, routes_simulation,
-                      routes_terms)
+                      routes_terms, routes_recommendations)
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ app.include_router(routes_metrics.router)
 app.include_router(routes_simulation.router)
 app.include_router(routes_terms.router)
 app.include_router(routes_terms.brouter)
+app.include_router(routes_recommendations.router)
 
 
 @app.get("/")

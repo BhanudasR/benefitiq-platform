@@ -77,6 +77,29 @@ Migrations: Alembic baseline under `migrations/` (target_metadata = Base.metadat
 for dev, Postgres for prod). Dev/pilot may auto-create tables on startup (BIQ_AUTO_CREATE_TABLES).
 Still future: analytics/metric engine, Renewal simulation, policy/member loaders, dashboards, AI.
 
+## Sprint 10 — Recommendation engines (Analytics/decision-support layer)
+Backend-only governed decision-support in `services/recommendations/`, composing EXISTING governed
+outputs (metric + simulation + terms) into an explainable renewal stance, a placement-trigger decision
+and broker next-best-actions. No raw-data access, no frontend math, no AI, no hard-coded recommendations.
+- `config.py` reads a new per-tenant **RecommendationConfig** (governed thresholds: ICR bands,
+  defensibility / RFQ cutoffs, confidence weights, `config_version`) with documented safe defaults when
+  absent. Migration `c7f1a2b3d4e5` (down_revision `bf5b4e9e2a15`) — Alembic chain intact.
+- `base.py` gathers signals once (icr/trends/claims/large-claims + adjusted-icr/balanced-design), computes
+  a transparent confidence (governed DQ reliability blended with evidence completeness, config-weighted),
+  enforces guardrails and assembles the shared explainability envelope.
+- `rules.py` is the single, ordered, documented rule set: decision THRESHOLDS come from config (never
+  literals); each rule emits its own explanation + evidence reference so output reconciles to source
+  metric values. Pure & deterministic.
+- `renewal.py` → stance (Defend/Negotiate/Redesign/Place/Monitor); `placement.py` → yes/no/review with
+  incumbent-defence score + RFQ readiness + negotiation evidence; `nba.py` → ordered broker actions.
+- Read-only API `routes_recommendations.py`: `GET /recommendations/{renewal,placement-trigger,
+  next-best-action,evidence/{kind}}` — `require_role(ANALYST)`, tenant-isolated, additive.
+Guardrails (enforced + tested): Operational ICR read unchanged; Adjusted / Defendable ICR kept separate and
+never substituted; one-off review never deletes claims; savings are scenario evidence, not guaranteed;
+Restricted → advisory blocked; Conditional → caveats; missing data → cautious/pending, never fake
+certainty; low evidence completeness lowers confidence. Frontend wiring of these engines into the Sprint 9
+pending-states is a future sprint.
+
 ## Procedure Intelligence Repository + Benchmark Master (future — governed reference/intelligence layer)
 A governed, **versioned** reference layer (distinct from tenant claim data — it is cross-tenant benchmark
 intelligence, not client PII) modelling **Specialty → Procedure Group → Procedure → Benchmark Rule →
