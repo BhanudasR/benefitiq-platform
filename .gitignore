@@ -5,3 +5,9 @@ _raw_store/
 .env
 *.egg-info/
 .venv/
+
+# local databases (dev/test throwaways — never commit)
+*.db
+*.sqlite
+*.sqlite3
+backend/tmp_mig.db
