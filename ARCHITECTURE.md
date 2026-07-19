@@ -100,6 +100,31 @@ Restricted → advisory blocked; Conditional → caveats; missing data → cauti
 certainty; low evidence completeness lowers confidence. Frontend wiring of these engines into the Sprint 9
 pending-states is a future sprint.
 
+## Sprint 12 — Wellness Intelligence engines (Analytics/decision-support layer)
+Backend-only, claim-pattern-driven wellness intelligence in `services/wellness/`, composing existing
+governed metric outputs (ailment / claims / relation / trends / demographics). Cohort-level and
+privacy-safe; no raw data, no PII, no individual targeting, no AI, no medical advice, no guaranteed ROI.
+- `registry.py` — a **deterministic, documented** diagnosis→wellness-category map (ICD-10 chapter/prefix +
+  keyword fallback; free-text is gated out of the chapter rule): metabolic, cardiovascular, maternity,
+  musculoskeletal, mental wellbeing, respiratory, oncology (awareness/screening, sensitive wording), and an
+  explicit "Other/unmapped" bucket (caveated). No LLM/AI classification.
+- `config.py` reads a per-tenant **WellnessConfig** (opportunity cutoffs, k-anonymity min cohort size,
+  confidence weights, `config_version`) with safe defaults. Migration `d8a2b4c6e1f3` (down_revision
+  `c7f1a2b3d4e5`) — Alembic chain intact.
+- `base.py` gathers governed metrics once, aggregates claims into wellness categories, enforces
+  **k-anonymity suppression** (cohorts below the minimum are dropped, never exposed), computes a transparent
+  confidence, and assembles the shared explainability envelope (opportunity/label, affected cohort, claim
+  driver, ailment category, potential impact [estimate], confidence, evidence, caveats, DQ status,
+  employer/employee impact, suggested intervention, ROI tracking basis, assumptions, next best action).
+- Engines: `overview`, `opportunities`, `recommendations`, `planner` (foundation), `roi_impact` (foundation
+  — tracking basis only, actuals pending). Read-only API `routes_wellness.py`:
+  `GET /wellness/{overview,opportunities,recommendations,planner,roi-impact,evidence/{kind}}` —
+  `require_role(ANALYST)`, tenant-isolated, additive.
+Guardrails (enforced + tested): claim-pattern-based (not generic); ROI is estimate/tracking basis, never
+guaranteed; missing → pending/low confidence; Restricted → advisory blocked; Conditional → caveats; unmapped
+share caveated; cohort-level only with k-anonymity; no PII, no individual targeting, no diagnosis advice.
+Frontend wiring of the Wellness 4 sub-tabs to these APIs is a future sprint.
+
 ## Procedure Intelligence Repository + Benchmark Master (future — governed reference/intelligence layer)
 A governed, **versioned** reference layer (distinct from tenant claim data — it is cross-tenant benchmark
 intelligence, not client PII) modelling **Specialty → Procedure Group → Procedure → Benchmark Rule →

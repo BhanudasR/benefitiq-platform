@@ -224,6 +224,27 @@ class RecommendationConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class WellnessConfig(Base):
+    """Tenant-scoped governed thresholds + privacy settings for the Wellness engines
+    (Sprint 12). Opportunity cutoffs, k-anonymity minimum cohort size and confidence
+    weights are governed, versioned, auditable and explainable — never hidden only in
+    code. Safe defaults apply when no tenant row exists. Shares are fractions (0..1)."""
+    __tablename__ = "wellness_config"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+    # a wellness category is an "opportunity" when it clears BOTH cutoffs
+    opportunity_min_share: Mapped[float] = mapped_column(Numeric(6, 4), default=0.05)   # of incurred
+    min_claim_count: Mapped[int] = mapped_column(Integer, default=2)
+    # privacy: cohorts smaller than this are suppressed (never exposed)
+    k_anonymity_min_cohort_size: Mapped[int] = mapped_column(Integer, default=5)
+    # confidence model weights (fractions; should sum to ~1)
+    weight_data_quality: Mapped[float] = mapped_column(Numeric(6, 4), default=0.60)
+    weight_evidence_completeness: Mapped[float] = mapped_column(Numeric(6, 4), default=0.40)
+    config_version: Mapped[str] = mapped_column(String(32), default="v1-default")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class TermsAudit(Base):
     """Audit of every terms confirmation / rejection / ignore decision (before/after)."""
     __tablename__ = "terms_audit"
