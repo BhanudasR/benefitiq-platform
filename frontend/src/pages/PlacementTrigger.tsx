@@ -1,114 +1,118 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { fmtCurrency, fmtPercent } from "../lib/format";
+import { fmtCurrency, fmtPercent, fmtShare } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge, CaveatBanner,
   RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, MiniTrend } from "../components/ui/sandbox";
 
-const pick = (o: any, keys: string[]) => {
-  for (const k of keys) if (o && o[k] !== undefined && o[k] !== null) return o[k];
-  return undefined;
+const TRIGGER_STYLE: Record<string, string> = {
+  yes: "bg-red-50 text-bad border-red-200",
+  no: "bg-green-50 text-good border-green-200",
+  review: "bg-amber-50 text-warn border-amber-200",
 };
 
-/** Renewal › Placement Trigger / Next Best Action — should we go to market or defend
- *  the incumbent, and what is the single next best broker action. The trigger call is
- *  a governed backend output; this screen composes the governed evidence (ICR,
- *  adjusted ICR, large-claim review) behind it. No browser-side decision math. */
+/** Renewal › Placement Trigger / Next Best Action — single-sourced from the governed
+ *  /recommendations/placement-trigger engine (Sprint 10). The trigger decision, scores,
+ *  reason, negotiation evidence and next best action are all rendered from the API.
+ *  No decision is computed in the browser. */
 export function PlacementTrigger() {
-  const [ev, setEv] = useState<{ title: string; data: any } | null>(null);
-  const icr = useQuery({ queryKey: ["m", "icr"], queryFn: () => api.metric("icr") });
-  const large = useQuery({ queryKey: ["m", "large-claims"], queryFn: () => api.metric("large-claims") });
-  const adjusted = useQuery({ queryKey: ["s", "adjusted-icr"], queryFn: () => api.simulation("adjusted-icr") });
+  const [ev, setEv] = useState(false);
+  const q = useQuery({ queryKey: ["reco", "placement-trigger"], queryFn: () => api.recommendation("placement-trigger") });
 
-  if (icr.isLoading) return <><SectionHeader title="Placement Trigger / Next Best Action" subtitle="Governed placement decision" /><Skeleton rows={4} /></>;
-  if (icr.isError) return <><SectionHeader title="Placement Trigger / Next Best Action" /><ErrorState onRetry={() => icr.refetch()} /></>;
+  if (q.isLoading) return <><SectionHeader title="Placement Trigger / Next Best Action" subtitle="Governed placement decision" /><Skeleton rows={4} /></>;
+  if (q.isError) return <><SectionHeader title="Placement Trigger / Next Best Action" /><ErrorState onRetry={() => q.refetch()} /></>;
 
-  const status = icr.data?.data_quality_status || "No Data";
+  const d = q.data || {};
+  const status = d.data_quality_status || "No Data";
   if (status === "No Data")
-    return <><SectionHeader title="Placement Trigger / Next Best Action" /><EmptyState message="No activated governed data yet. Complete Data Onboarding to build the placement decision." /></>;
+    return <><SectionHeader title="Placement Trigger / Next Best Action" /><EmptyState title="Placement decision pending governed data"
+      message="No activated governed data yet. Complete Data Onboarding to generate the placement decision." /></>;
 
-  const iv = icr.data.value || {};
-  const adj = adjusted.data?.value;
-  const largeClaims = large.data?.value?.large_claims || [];
-  const blocked = icr.data.advisory_blocked || adjusted.data?.advisory_blocked;
-  const adjLine = adj ? `; Adjusted / Defendable ICR ${fmtPercent(adj.adjusted_icr)} once one-off claims are set aside` : "";
-
-  // governed placement fields — displayed only if the backend supplies them
-  const pv = icr.data.value || {};
-  const triggered = pick(pv, ["placement_recommended", "trigger_placement"]);
-  const triggerReason = pick(pv, ["placement_reason", "trigger_reason"]);
-  const incumbentVsRfq = pick(pv, ["incumbent_vs_rfq", "placement_route"]);
-  const nextBestAction = pick(pv, ["next_best_action", "recommended_action"]);
-  const hasGovernedTrigger = triggered !== undefined || nextBestAction !== undefined;
+  const triggered = String(d.placement_triggered ?? "review");
+  const ne = d.negotiation_evidence || {};
+  const oneOff: any[] = ne.one_off_claims || [];
+  const reasoning: any[] = d.reasoning || [];
+  const nba = d.next_best_action;
+  const scorePart = d.confidence_score != null ? ` · score ${d.confidence_score}` : "";
+  const confLine = `Confidence ${d.confidence} · reliability ${d.reliability}${scorePart}.`;
 
   return (
     <div className="space-y-5">
       <SectionHeader title="Placement Trigger / Next Best Action" subtitle="Governed placement decision — defend or go to market"
         right={<DataQualityBadge status={status} />} />
-      <RestrictedBanner blocked={blocked} />
-      <CaveatBanner caveats={icr.data.caveats} />
+      <RestrictedBanner blocked={d.advisory_blocked} />
+      <CaveatBanner caveats={d.caveats} />
 
-      <DecisionSummary title="Should this renewal trigger a placement?" points={[
-        `Operational ICR ${fmtPercent(iv.operational_icr)}${adjLine}.`,
-        largeClaims.length > 0
-          ? `${largeClaims.length} large claim(s) flagged for one-off review — these strengthen an incumbent-defence conversation before going to market.`
-          : "No large one-off claims flagged; the loss ratio is broad-based rather than event-driven.",
-      ]} />
+      <DecisionSummary title={String(d.recommendation)} points={[d.summary || "Governed placement decision.", confLine]} />
 
+      {/* Trigger decision + scores */}
       <Card className="p-5 border-l-4 border-l-brand">
-        <div className="text-xs font-semibold uppercase tracking-wide text-brand mb-1">Placement decision</div>
-        {hasGovernedTrigger ? (
-          <>
-            <h3 className="text-base font-semibold text-ink">
-              {triggered !== undefined ? (triggered ? "Trigger placement — go to market" : "Do not trigger — defend the incumbent") : "Governed placement recommendation"}
-            </h3>
-            {incumbentVsRfq && <div className="text-sm text-ink mt-1">Route: <b>{String(incumbentVsRfq)}</b></div>}
-            {triggerReason && <p className="text-sm text-muted mt-1">{String(triggerReason)}</p>}
-            {nextBestAction && (
-              <div className="mt-3 text-sm">
-                <span className="text-xs font-semibold uppercase tracking-wide text-good">Next best broker action: </span>
-                <span className="text-ink">{String(nextBestAction)}</span>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <h3 className="text-base font-semibold text-ink">Governed trigger pending placement endpoint</h3>
-            <p className="text-sm text-muted mt-1 max-w-2xl">
-              Whether to trigger placement, defend the incumbent or run an RFQ is a governed backend output,
-              not a browser calculation. The insurer-negotiation evidence below is live now; the explicit
-              trigger and next best action surface once the placement endpoint returns them.
-            </p>
-          </>
-        )}
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-semibold uppercase tracking-wide text-brand">Placement decision</div>
+          <span data-testid="pt-triggered"
+            className={`text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border ${TRIGGER_STYLE[triggered] || "bg-slate-100 text-muted border-line"}`}>
+            {triggered}
+          </span>
+        </div>
+        <h3 className="text-base font-semibold text-ink mt-1">{String(d.recommendation)}</h3>
+        {d.trigger_reason && <p className="text-sm text-muted mt-1" data-testid="pt-reason">{String(d.trigger_reason)}</p>}
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div><div className="text-xs text-muted">Incumbent defence score</div>
+            <div className="text-xl font-semibold" data-testid="pt-defence">{d.incumbent_defence_score != null ? String(d.incumbent_defence_score) : "—"}</div></div>
+          <div><div className="text-xs text-muted">RFQ readiness</div>
+            <div className="text-xl font-semibold" data-testid="pt-rfq">{d.rfq_readiness != null ? String(d.rfq_readiness) : "—"}</div></div>
+        </div>
+        <div className="mt-3 text-sm">
+          <span className="text-xs font-semibold uppercase tracking-wide text-good">Next best action: </span>
+          <span className="text-ink" data-testid="pt-nba">{nba ? String(nba.explanation) : "—"}</span>
+        </div>
       </Card>
 
-      {largeClaims.length > 0 && (
+      {/* Negotiation evidence */}
+      <Card className="p-4" >
+        <div className="text-sm font-medium mb-2">Insurer negotiation evidence</div>
+        <div data-testid="pt-negotiation-evidence" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div><div className="text-xs text-muted">Operational ICR</div>
+            <div className="text-lg font-semibold" data-testid="pt-op-icr">{fmtPercent(ne.operational_icr ?? d.operational_icr)}</div></div>
+          <div><div className="text-xs text-muted">{"Adjusted / Defendable ICR"}</div>
+            <div className="text-lg font-semibold text-warn" data-testid="pt-adj-icr">{fmtPercent(ne.adjusted_icr ?? d.adjusted_icr)}</div></div>
+          <div><div className="text-xs text-muted">Large one-off share</div>
+            <div className="text-lg font-semibold">{fmtShare(ne.large_claim_incurred_share)}</div></div>
+        </div>
+        {oneOff.length > 0 && (
+          <div className="mt-3">
+            <MiniTrend series={oneOff} columns={[
+              { key: "claim_number", label: "Claim" },
+              { key: "policy_year", label: "Year" },
+              { key: "incurred", label: "Incurred", fmt: fmtCurrency },
+              { key: "one_off_review_candidate", label: "One-off candidate", fmt: (v) => (v ? "Yes" : "—") },
+            ]} />
+          </div>
+        )}
+        {ne.note && <p className="text-xs text-muted mt-2">{String(ne.note)}</p>}
+      </Card>
+
+      {/* Reasoning + confidence */}
+      {reasoning.length > 0 && (
         <Card className="p-4">
-          <div className="text-sm font-medium mb-2">Insurer negotiation evidence — large one-off claims</div>
-          <MiniTrend series={largeClaims} columns={[
-            { key: "claim_number", label: "Claim" },
-            { key: "policy_year", label: "Year" },
-            { key: "incurred", label: "Incurred", fmt: fmtCurrency },
-            { key: "one_off_review_candidate", label: "One-off candidate", fmt: (v) => (v ? "Yes" : "—") },
-          ]} />
+          <div className="text-sm font-medium mb-2">Why this decision</div>
+          <ul className="list-disc pl-5 text-sm text-ink/80 space-y-1" data-testid="pt-reasoning">
+            {reasoning.map((r, i) => <li key={i}>{r.explanation}</li>)}
+          </ul>
         </Card>
       )}
 
       <FourQuestions
-        soWhat={hasGovernedTrigger ? "A governed placement decision is available below." : "Whether to defend the incumbent or go to market is a governed backend decision; the evidence for it is live now."}
-        why={largeClaims.length > 0 ? `${largeClaims.length} large one-off claim(s) strengthen an incumbent-defence case before any RFQ.` : "Loss experience is broad-based rather than event-driven, which shapes the placement approach."}
-        next="Use the large-claim evidence to defend the incumbent first; trigger an RFQ only if the governed decision recommends it."
-        trust={`Evidence from governed ICR, adjusted-ICR and large-claims APIs on ${status} data. The placement trigger is never computed in the browser — a pending-state is shown until the backend provides it.`} />
+        soWhat={`Placement decision: ${triggered} — ${String(d.recommendation)}.`}
+        why={reasoning.length > 0 ? String(reasoning[0].explanation) : "Weighted from governed incumbent-defence and RFQ-readiness signals."}
+        next={nba ? String(nba.explanation) : "Follow the governed next best action once available."}
+        trust={`Rendered from the governed /recommendations/placement-trigger engine on ${status} data — the trigger is never computed in the browser. Operational ICR stays separate from the Adjusted / Defendable view.`} />
 
-      <button className="text-xs font-medium text-brand hover:underline"
-        onClick={() => setEv({ title: "Placement evidence", data: icr.data })}>
-        View evidence &amp; caveats →
-      </button>
-      <EvidenceDrawer open={!!ev} onClose={() => setEv(null)} title={ev?.title} evidence={ev?.data || null} />
+      <button className="text-xs font-medium text-brand hover:underline" onClick={() => setEv(true)}>View evidence &amp; caveats →</button>
+      <EvidenceDrawer open={ev} onClose={() => setEv(false)} title="Placement decision evidence" evidence={ev ? d : null} />
     </div>
   );
 }

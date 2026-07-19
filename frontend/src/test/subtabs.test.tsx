@@ -10,7 +10,8 @@ vi.mock("../lib/api", async (orig) => {
   return { ...actual, api: { ...actual.api,
     metric: vi.fn().mockResolvedValue(noData),
     simulation: vi.fn().mockResolvedValue(noData),
-    terms: vi.fn().mockResolvedValue({ terms: [] }) } };
+    terms: vi.fn().mockResolvedValue({ terms: [] }),
+    recommendation: vi.fn().mockResolvedValue(noData) } };
 });
 
 describe("Renewal Intelligence sub-tabs (exactly 6, demo-parity)", () => {

@@ -1,53 +1,87 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "./util";
 
 vi.mock("../lib/api", async (orig) => {
   const actual: any = await orig();
-  return { ...actual, api: { ...actual.api, metric: vi.fn(), simulation: vi.fn() } };
+  return { ...actual, api: { ...actual.api, recommendation: vi.fn() } };
 });
 import { api } from "../lib/api";
 import { RecommendedStrategy } from "../pages/RecommendedStrategy";
 
-// Fixtures use ONLY fields the governed backend actually returns (icr.value.operational_icr,
-// adjusted-icr.value.{operational_icr,adjusted_icr}, balanced-design.value.levers[]).
-// No recommendation/stance field is injected — the backend does not yet return one, so the
-// screen must show a governed pending-state (the frontend never computes the recommendation).
-const ICR = { data_quality_status: "Analytics Ready", advisory_blocked: false, caveats: [],
-  value: { operational_icr: 118.0 } };
-const ADJ = { data_quality_status: "Analytics Ready", value: { operational_icr: 118.0, adjusted_icr: 92.0 } };
-const BAL = { data_quality_status: "Analytics Ready", value: { levers: [
-  { lever: "room_rent", expected_saving: 35000, classification: "Preferred" },
-  { lever: "copay", expected_saving: 146000, classification: "High employee impact" }] } };
+// Governed /recommendations/renewal response shape (Sprint 10). The page renders these
+// fields directly — it never computes the stance/decision in the browser.
+const RENEWAL = {
+  kind: "renewal", recommendation: "Defend", stance: "Defend",
+  summary: "Renewal stance: Defend. Operational ICR 73.64% on written premium.",
+  confidence: "high", confidence_score: 1.0, reliability: "high",
+  reasoning: [
+    { rule: "icr_comfortable", explanation: "Operational ICR 73.64% is at or below the comfortable band (100%).", evidence: {} },
+    { rule: "adverse_trend", explanation: "Adverse trend: ICR moved 20% year-on-year.", evidence: {} },
+  ],
+  evidence_references: [{ source: "/metrics/icr", field: "operational_icr", value: 73.64 }],
+  source_metrics_used: ["/metrics/icr", "/metrics/trends", "/metrics/large-claims", "/simulation/adjusted-icr", "/simulation/balanced-design"],
+  caveats: [], restricted: false, advisory_blocked: false, data_quality_status: "Analytics Ready",
+  next_best_action: { rule: "defend_one_off", explanation: "Defend renewal using one-off claim evidence.", evidence: {} },
+  talking_points: ["Operational ICR is 73.64% on written premium (unchanged).", "Defendable ICR is 19.09% — a defensibility view, not a replacement."],
+  employer_impact: { defensible_levers: [{ lever: "parent_copay", expected_saving: 60000, classification: "Good option" }], note: "Expected savings are scenario evidence, not guaranteed savings." },
+  employee_impact: { high_friction_levers: [{ lever: "copay", classification: "High employee impact" }], note: "Levers with employee friction shift cost to members." },
+  operational_icr: 73.64, adjusted_icr: 19.09, adjusted_icr_note: "Adjusted / Defendable ICR never replaces Operational ICR.",
+  config_version: "v1-default", threshold_basis: "governed default thresholds",
+};
 
-function wireDefault() {
-  (api.metric as any).mockImplementation((n: string) => Promise.resolve(n === "icr" ? ICR : null));
-  (api.simulation as any).mockImplementation((n: string) => Promise.resolve(n === "adjusted-icr" ? ADJ : BAL));
-}
-beforeEach(() => { (api.metric as any).mockReset?.(); (api.simulation as any).mockReset?.(); });
+beforeEach(() => (api.recommendation as any).mockReset());
 
-describe("Recommended Strategy (governed — no frontend recommendation math)", () => {
-  it("shows a governed pending-state and does NOT compute the recommendation when the backend provides none", async () => {
-    wireDefault();
+describe("Recommended Strategy (single-sourced from /recommendations/renewal)", () => {
+  it("renders API stance, confidence/reliability, reasoning, talking points and impacts", async () => {
+    (api.recommendation as any).mockResolvedValue(RENEWAL);
     renderWithProviders(<RecommendedStrategy />);
-    await waitFor(() => expect(screen.getByText(/pending strategy endpoint/i)).toBeInTheDocument());
-    expect(screen.getByTestId("four-questions")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("rs-stance")).toHaveTextContent("Defend"));
+    expect(api.recommendation).toHaveBeenCalledWith("renewal");
+    expect(screen.getByTestId("rs-confidence")).toHaveTextContent("high");
+    expect(screen.getByTestId("rs-confidence")).toHaveTextContent("high");        // reliability shown too
+    expect(screen.getByTestId("rs-reasoning")).toHaveTextContent(/comfortable band/i);
+    expect(screen.getByTestId("rs-talking-points")).toHaveTextContent(/unchanged/i);
+    expect(screen.getByTestId("rs-employer")).toHaveTextContent(/parent copay/i);
+    expect(screen.getByTestId("rs-employee")).toHaveTextContent("copay");
+    expect(screen.getByTestId("rs-nba")).toHaveTextContent(/one-off claim evidence/i);
+    expect(screen.getByTestId("rs-source-metrics")).toHaveTextContent("/metrics/icr");
   });
 
-  it("keeps Operational and Adjusted / Defendable ICR visible and separate (existing valid fields)", async () => {
-    wireDefault();
+  it("renders Operational and Adjusted / Defendable ICR separately from the API", async () => {
+    (api.recommendation as any).mockResolvedValue(RENEWAL);
     renderWithProviders(<RecommendedStrategy />);
-    await waitFor(() => expect(screen.getByTestId("rs-op-icr")).toHaveTextContent("118%"));
-    expect(screen.getByTestId("rs-adj-icr")).toHaveTextContent("92%");
-    // the two are distinct, labelled elements — operational is never replaced by adjusted
+    await waitFor(() => expect(screen.getByTestId("rs-op-icr")).toHaveTextContent("73.64%"));
+    expect(screen.getByTestId("rs-adj-icr")).toHaveTextContent("19.09%");
     expect(screen.getByTestId("rs-op-icr")).not.toBe(screen.getByTestId("rs-adj-icr"));
   });
 
-  it("Restricted dataset shows advisory-blocked banner", async () => {
-    (api.metric as any).mockImplementation((n: string) => Promise.resolve(n === "icr"
-      ? { ...ICR, advisory_blocked: true, data_quality_status: "Restricted" } : null));
-    (api.simulation as any).mockImplementation((n: string) => Promise.resolve(n === "adjusted-icr" ? ADJ : BAL));
+  it("does not compute a stance — a No-Data response shows a premium pending state", async () => {
+    (api.recommendation as any).mockResolvedValue({ recommendation: "Monitor", data_quality_status: "No Data", operational_icr: null });
     renderWithProviders(<RecommendedStrategy />);
+    await waitFor(() => expect(screen.getByText(/Recommendation pending governed data/i)).toBeInTheDocument());
+    expect(screen.queryByTestId("rs-stance")).not.toBeInTheDocument();
+  });
+
+  it("Restricted response shows advisory-blocked; Conditional shows caveats", async () => {
+    (api.recommendation as any).mockResolvedValue({ ...RENEWAL, recommendation: "Advisory blocked",
+      advisory_blocked: true, restricted: true, data_quality_status: "Restricted",
+      caveats: ["Dataset is RESTRICTED; advisory interpretation is blocked."] });
+    const { unmount } = renderWithProviders(<RecommendedStrategy />);
     await waitFor(() => expect(screen.getByTestId("restricted-banner")).toBeInTheDocument());
+    unmount();
+    (api.recommendation as any).mockResolvedValue({ ...RENEWAL, data_quality_status: "Conditional",
+      caveats: ["Written premium basis used."] });
+    renderWithProviders(<RecommendedStrategy />);
+    await waitFor(() => expect(screen.getByTestId("caveat-banner")).toHaveTextContent(/written premium/i));
+  });
+
+  it("evidence drawer opens", async () => {
+    (api.recommendation as any).mockResolvedValue(RENEWAL);
+    renderWithProviders(<RecommendedStrategy />);
+    await waitFor(() => expect(screen.getByTestId("rs-stance")).toBeInTheDocument());
+    await userEvent.click(screen.getByText(/View evidence/i));
+    await waitFor(() => expect(screen.getByTestId("evidence-drawer")).toBeInTheDocument());
   });
 });

@@ -63,5 +63,9 @@ export const api = {
   terms(params: Record<string, any> = {}): Promise<any> {
     return req(`/terms${qs(params)}`);
   },
+  // governed read-only recommendation engines (Sprint 10 backend); UI renders fields only
+  recommendation(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/recommendations/${name}${qs(params)}`);
+  },
   logout() { setToken(null); },
 };

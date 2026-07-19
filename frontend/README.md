@@ -105,3 +105,18 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
   pending-state** for the trigger; no frontend trigger math.
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
+
+## Sprint 11 — Recommended Strategy & Placement Trigger wired to the recommendation engines
+Both sub-tabs are now **single-sourced** from the governed Sprint 10 recommendation APIs via
+`api.recommendation(name)` (`src/lib/api.ts`); the earlier `/metrics/icr`, `/simulation/adjusted-icr` and
+`/simulation/balanced-design` page queries are removed. No decision is computed in the browser.
+- **Recommended Strategy** (`/recommendations/renewal`) — renders stance, confidence + reliability,
+  reasoning bullets, source metrics used, employer/employee impact, broker talking points, next best
+  action, caveats, evidence, and Operational vs Adjusted / Defendable ICR (kept separate; operational never
+  replaced) + config/threshold basis.
+- **Placement Trigger / NBA** (`/recommendations/placement-trigger`) — renders placement_triggered
+  (yes/no/review), incumbent-defence score, RFQ readiness, trigger reason, negotiation evidence (with the
+  one-off claim table), next best action, confidence and caveats.
+- Governance states preserved: Restricted → advisory-blocked banner; Conditional → caveats; No-Data /
+  missing → premium pending state. Evidence drawer opens on the full governed response. The
+  no-frontend-math guard covers both pages.
