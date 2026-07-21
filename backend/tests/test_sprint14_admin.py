@@ -156,6 +156,7 @@ def test_alembic_single_head_and_chain_intact():
             downs[rev.group(1)] = down.group(1) if down else None
     referenced = {d for d in downs.values() if d}
     heads = [r for r in revs if r not in referenced]
-    assert heads == ["e9c3f7a1b2d4"], heads
+    assert "e9c3f7a1b2d4" in revs        # this sprint's migration is present
+    assert len(heads) == 1               # single head (exact hash checked in the newest sprint test)
     assert len([r for r, d in downs.items() if d is None]) == 1
     assert all(d in revs for d in referenced)

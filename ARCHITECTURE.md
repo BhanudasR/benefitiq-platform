@@ -100,6 +100,31 @@ Restricted → advisory blocked; Conditional → caveats; missing data → cauti
 certainty; low evidence completeness lowers confidence. Frontend wiring of these engines into the Sprint 9
 pending-states is a future sprint.
 
+## Sprint 15 — Benefit Benchmarking backend foundation (design + T&C only, no claims)
+Backend-only benchmarking in `services/benchmarking/`, comparing benefit DESIGN + policy terms only
+against an internal broker-portfolio peer group. It imports ONLY policy/term models — never the
+claims/metrics/simulation services — and no claims/ICR/utilization concept appears in any output
+(enforced by a structural + import test).
+- `registry.py` — code-governed 24-feature registry mapping each feature to a confirmed `BenefitTerm`
+  `term_type` (or 'not yet captured'), value type, comparison `direction` (generosity, for interpretation),
+  comparability mode and category (design vs terms). Features without a structured source return
+  'Not Available / Not Comparable' with a reason — never a fabricated value.
+- `config.py` reads a per-tenant **BenchmarkConfig** (min peer count, same-tolerance, confidence weights,
+  benchmark_basis) with safe defaults. Migration `f1b5d9c3a7e2` (down_revision `e9c3f7a1b2d4`) also adds
+  **BenchmarkObservation** — the empty, governed seam for curated/external benchmark values (source +
+  confidence + last_updated + basis; no claims columns). Chain intact.
+- `base.py` builds the peer group from the internal portfolio (enforcing min peer count — no benchmark
+  without a valid peer group), extracts the client's confirmed term, computes the peer benchmark
+  (median/mode), classifies Same/Above/Below/Different/Not-Comparable and assembles the envelope
+  (client value, benchmark/peer value, peer-group definition, peer count, classification, rank basis,
+  confidence, source evidence, caveats, benchmark basis, discussion point, not-comparable reason).
+  `is_gap` is direction-aware (less-generous = Below for higher-is-better, Above for co-pay/waiting).
+- Engines: `comparison` (overview/features/peer), `policy_terms`, `gaps`, `discussion`. Read-only API
+  `routes_benchmarking.py`: `GET /benchmarking/{overview,features,policy-terms-comparison,peer-comparison,
+  gap-analysis,discussion-points,evidence/{kind}}` — `require_role(ANALYST)` + Sprint-14
+  `enforce_client_scope`. Benefit gaps flow one-way downstream to Renewal/Sandbox (future sprints); claims
+  never drive the classification.
+
 ## Sprint 14 — Admin User Management + RBAC foundation (additive)
 Real, admin-managed users land without disturbing the pilot auth or existing tests. New `app_user` table
 (migration `e9c3f7a1b2d4`, down_revision `d8a2b4c6e1f3`) stores email/bcrypt-hash/base_role/user_role/

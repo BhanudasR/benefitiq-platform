@@ -224,6 +224,45 @@ class RecommendationConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class BenchmarkConfig(Base):
+    """Tenant-scoped governed config for Benefit Benchmarking (Sprint 15). Benchmarking
+    compares benefit DESIGN + policy T&C only — never claims. Peer-group validity,
+    numeric 'same' tolerance and confidence weights are governed here; safe defaults apply
+    when no tenant row exists."""
+    __tablename__ = "benchmark_config"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+    min_peer_count: Mapped[int] = mapped_column(Integer, default=3)     # no benchmark without a valid peer group
+    percentile_method: Mapped[str] = mapped_column(String(16), default="median")
+    same_tolerance_pct: Mapped[float] = mapped_column(Numeric(6, 4), default=0.02)  # numeric 'Same' band
+    weight_peer_size: Mapped[float] = mapped_column(Numeric(6, 4), default=0.60)
+    weight_term_availability: Mapped[float] = mapped_column(Numeric(6, 4), default=0.40)
+    benchmark_basis: Mapped[str] = mapped_column(String(48), default="internal_broker_portfolio")
+    config_version: Mapped[str] = mapped_column(String(32), default="v1-default")
+    status: Mapped[str] = mapped_column(String(16), default="active")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class BenchmarkObservation(Base):
+    """Governed seam for CURATED / EXTERNAL benchmark values (Sprint 15 foundation — remains
+    empty; the internal benchmark is computed live from confirmed BenefitTerm data). Every
+    row carries source + confidence + last_updated + basis. NO claims columns ever."""
+    __tablename__ = "benchmark_observation"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, nullable=True)  # null = shared/market
+    source: Mapped[str] = mapped_column(String(64))                 # internal_portfolio|curated_market|regulatory
+    peer_group_key: Mapped[str] = mapped_column(String(128), index=True)
+    feature_id: Mapped[str] = mapped_column(String(48), index=True)
+    value: Mapped[float] = mapped_column(Numeric(18, 4), nullable=True)
+    text_value: Mapped[str] = mapped_column(Text, nullable=True)
+    confidence: Mapped[float] = mapped_column(Numeric(5, 3), nullable=True)
+    last_updated: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    basis: Mapped[str] = mapped_column(String(128), nullable=True)
+    active_flag: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class WellnessConfig(Base):
     """Tenant-scoped governed thresholds + privacy settings for the Wellness engines
     (Sprint 12). Opportunity cutoffs, k-anonymity minimum cohort size and confidence
