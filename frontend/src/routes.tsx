@@ -15,6 +15,8 @@ import { WellnessShell } from "./pages/WellnessShell";
 import { WellnessOverview, WellnessOpportunity, WellnessPlanner, WellnessRoi } from "./pages/Wellness";
 import { BenchmarkingShell } from "./pages/BenchmarkingShell";
 import { BenchmarkOverview, BenchmarkFeatures, BenchmarkPolicyTerms, BenchmarkPeer, BenchmarkGaps, BenchmarkDiscussion, BenchmarkEvidence } from "./pages/Benchmarking";
+import { PlacementShell } from "./pages/PlacementShell";
+import { PlacementOverview, PlacementIncumbentDefence, PlacementRfqReadiness, PlacementQuoteComparison, PlacementTermsComparison, PlacementRecommendation, PlacementEvidence } from "./pages/Placement";
 import { AdminUsers } from "./pages/AdminUsers";
 import { Placeholder } from "./pages/Placeholder";
 import { Login } from "./pages/Login";
@@ -41,7 +43,7 @@ const WIRED: Record<string, React.ReactNode> = {
 };
 
 // parents render nested sub-routes, not a flat page
-const NESTED = new Set(["/renewal", "/wellness", "/benchmarking"]);
+const NESTED = new Set(["/renewal", "/wellness", "/benchmarking", "/placement"]);
 
 export function AppRoutes() {
   return (
@@ -76,6 +78,17 @@ export function AppRoutes() {
           <Route path="gap-analysis" element={<BenchmarkGaps />} />
           <Route path="discussion-points" element={<BenchmarkDiscussion />} />
           <Route path="evidence" element={<BenchmarkEvidence />} />
+        </Route>
+
+        {/* Placement Intelligence — parent tab with exactly the 7 placement sub-tabs */}
+        <Route path="/placement" element={<PlacementShell />}>
+          <Route index element={<PlacementOverview />} />
+          <Route path="incumbent-defence" element={<PlacementIncumbentDefence />} />
+          <Route path="rfq-readiness" element={<PlacementRfqReadiness />} />
+          <Route path="quote-comparison" element={<PlacementQuoteComparison />} />
+          <Route path="terms-comparison" element={<PlacementTermsComparison />} />
+          <Route path="recommendation" element={<PlacementRecommendation />} />
+          <Route path="evidence" element={<PlacementEvidence />} />
         </Route>
 
         {/* Settings / Admin — NOT an analytics tab; capability-guarded (backend-enforced too) */}

@@ -106,6 +106,24 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 18 — Placement Intelligence (parent tab + 7 sub-tabs)
+Placement Intelligence becomes a **parent tab** (`PlacementShell`) — still one of the 20 analytics
+tabs — with exactly 7 sub-tabs (`src/pages/Placement.tsx`), each single-sourced from the governed
+Sprint 18 `/placement/*` composition APIs via `api.placement(name)`: Placement Overview (`/overview`) ·
+Incumbent Defence (`/incumbent-defence`) · RFQ Readiness (`/rfq-readiness`) · Quote Comparison
+(`/quote-comparison`) · Terms Comparison (`/terms-comparison`) · Recommendation (`/recommendation`) ·
+Evidence (`/evidence/{kind}`).
+- The stay-defend / negotiate / RFQ decision is **reused** from the placement-trigger engine, not
+  recomputed — Recommendation shows an explicit "Source: renewal Placement Trigger engine" basis and
+  matches `/recommendations/placement-trigger`. No browser-side placement or quote math.
+- **Quote Comparison** shows a governed **pending / no-quote state** (`quote_data_available: false`) with
+  the expected comparison shape — no insurer quotes or pricing are ever fabricated (quote ingestion is a
+  future capability).
+- **Terms Comparison** is sourced only from Benefit Benchmarking (benefit design + policy terms, claims-
+  free) — terms to protect + benchmark gaps to raise, plus Sprint-17 gap actions already sent downstream.
+- Operational ICR is shown unchanged and Adjusted / Defendable ICR is kept separate; every view shows DQ
+  status, source basis, caveats and an evidence drawer.
+
 ## Sprint 17 — Benchmark Gap → Renewal / Savings Sandbox linkage (one-way, governed)
 A broker can flag a Benefit Benchmarking gap or send it downstream to the Savings Sandbox for
 impact simulation — strictly one-way. On the Benchmarking Gap Analysis and Benefit Design

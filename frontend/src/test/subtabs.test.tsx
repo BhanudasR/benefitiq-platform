@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { AppRoutes } from "../routes";
-import { RENEWAL_SUBTABS, WELLNESS_SUBTABS, BENCHMARKING_SUBTABS } from "../nav/tabs";
+import { RENEWAL_SUBTABS, WELLNESS_SUBTABS, BENCHMARKING_SUBTABS, PLACEMENT_SUBTABS } from "../nav/tabs";
 import { renderWithProviders } from "./util";
 
 vi.mock("../lib/api", async (orig) => {
@@ -13,7 +13,8 @@ vi.mock("../lib/api", async (orig) => {
     terms: vi.fn().mockResolvedValue({ terms: [] }),
     recommendation: vi.fn().mockResolvedValue(noData),
     wellness: vi.fn().mockResolvedValue(noData),
-    benchmarking: vi.fn().mockResolvedValue(noData) } };
+    benchmarking: vi.fn().mockResolvedValue(noData),
+    placement: vi.fn().mockResolvedValue(noData) } };
 });
 
 describe("Renewal Intelligence sub-tabs (exactly 6, demo-parity)", () => {
@@ -51,6 +52,19 @@ describe("Benefits & Benchmarking sub-tabs (exactly 7)", () => {
   });
   for (const s of BENCHMARKING_SUBTABS) {
     it(`renders Benchmarking sub-tab: ${s.label}`, () => {
+      renderWithProviders(<AppRoutes />, { route: s.path });
+      expect(screen.getByTestId("subtab-nav")).toBeInTheDocument();
+      expect(screen.getAllByText(s.label).length).toBeGreaterThan(0);
+    });
+  }
+});
+
+describe("Placement Intelligence sub-tabs (exactly 7)", () => {
+  it("has exactly 7 placement sub-tabs", () => {
+    expect(PLACEMENT_SUBTABS).toHaveLength(7);
+  });
+  for (const s of PLACEMENT_SUBTABS) {
+    it(`renders Placement sub-tab: ${s.label}`, () => {
       renderWithProviders(<AppRoutes />, { route: s.path });
       expect(screen.getByTestId("subtab-nav")).toBeInTheDocument();
       expect(screen.getAllByText(s.label).length).toBeGreaterThan(0);

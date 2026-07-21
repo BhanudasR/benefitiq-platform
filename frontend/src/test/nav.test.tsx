@@ -51,6 +51,16 @@ describe("navigation shell", () => {
     expect(TABS).toHaveLength(20);   // still one of the 20 main tabs
   });
 
+  it("Placement Intelligence is one main tab with exactly 7 sub-tabs", () => {
+    const pm = TABS.find((t) => t.id === "placement")!;
+    expect(pm.subTabs).toHaveLength(7);
+    expect(pm.subTabs!.map((s) => s.label)).toEqual([
+      "Placement Overview", "Incumbent Defence", "RFQ Readiness", "Quote Comparison",
+      "Terms Comparison", "Recommendation", "Evidence",
+    ]);
+    expect(TABS).toHaveLength(20);   // still one of the 20 main tabs
+  });
+
   it("Wellness Intelligence has exactly the 4 demo sub-tabs", () => {
     const wellness = TABS.find((t) => t.id === "wellness")!;
     expect(wellness.subTabs).toHaveLength(4);

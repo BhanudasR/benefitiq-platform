@@ -13,7 +13,8 @@ vi.mock("../lib/api", async (orig) => {
     terms: vi.fn().mockResolvedValue({ terms: [] }),
     recommendation: vi.fn().mockResolvedValue(noData),
     wellness: vi.fn().mockResolvedValue(noData),
-    benchmarking: vi.fn().mockResolvedValue(noData) } };
+    benchmarking: vi.fn().mockResolvedValue(noData),
+    placement: vi.fn().mockResolvedValue(noData) } };
 });
 
 describe("all 20 top-level tab routes render", () => {

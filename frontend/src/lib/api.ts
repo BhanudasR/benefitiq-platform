@@ -79,6 +79,11 @@ export const api = {
   benchmarking(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/benchmarking/${name}${qs(params)}`);
   },
+  // governed read-only Placement Intelligence (Sprint 18); composition layer that REUSES the
+  // placement-trigger engine + benchmarking — no frontend math, no fabricated quotes
+  placement(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/placement/${name}${qs(params)}`);
+  },
   // Sprint 17 — benchmark gap -> Renewal / Savings Sandbox linkage (one-way, governed).
   // Writes require the benchmark_action capability (enforced server-side); the UI mirrors it.
   benchmarkActions: {

@@ -47,6 +47,19 @@ export const BENCHMARKING_SUBTABS: SubTab[] = [
   { id: "benchmarking-evidence", label: "Evidence / Export", path: "/benchmarking/evidence", wired: true },
 ];
 
+/** Placement Intelligence — parent tab with exactly the 7 placement sub-tabs (Sprint 18).
+ *  A composition module over the governed placement-trigger engine + benchmarking; still ONE
+ *  of the 20 tabs. Quote Comparison is a governed pending state (no insurer quotes yet). */
+export const PLACEMENT_SUBTABS: SubTab[] = [
+  { id: "placement-overview", label: "Placement Overview", path: "/placement", end: true, wired: true },
+  { id: "placement-incumbent-defence", label: "Incumbent Defence", path: "/placement/incumbent-defence", wired: true },
+  { id: "placement-rfq-readiness", label: "RFQ Readiness", path: "/placement/rfq-readiness", wired: true },
+  { id: "placement-quote-comparison", label: "Quote Comparison", path: "/placement/quote-comparison", wired: true },
+  { id: "placement-terms-comparison", label: "Terms Comparison", path: "/placement/terms-comparison", wired: true },
+  { id: "placement-recommendation", label: "Recommendation", path: "/placement/recommendation", wired: true },
+  { id: "placement-evidence", label: "Evidence", path: "/placement/evidence", wired: true },
+];
+
 /** Wellness Intelligence — exactly the 4 demo sub-tabs (no more). */
 export const WELLNESS_SUBTABS: SubTab[] = [
   { id: "wellness-overview", label: "Wellness Overview", path: "/wellness", end: true },
@@ -77,7 +90,7 @@ export const TABS: Tab[] = [
   { id: "renewal", label: "Renewal Intelligence", path: "/renewal", group: "Benefits & Renewal", wired: true, subTabs: RENEWAL_SUBTABS },
 
   // 4 — Strategic Advisory
-  { id: "placement", label: "Placement Intelligence", path: "/placement", group: "Strategic Advisory" },
+  { id: "placement", label: "Placement Intelligence", path: "/placement", group: "Strategic Advisory", wired: true, subTabs: PLACEMENT_SUBTABS },
   { id: "wellness", label: "Wellness Intelligence", path: "/wellness", group: "Strategic Advisory", subTabs: WELLNESS_SUBTABS },
 
   // 5 — AI & Outputs
