@@ -30,6 +30,8 @@ def _common(
 
 
 def _ctx(principal, db, filters):
+    from ..api.deps import enforce_client_scope
+    enforce_client_scope(principal, filters)   # Client HR Viewer restricted to assigned clients
     return SimContext(db, principal["tenant_id"], filters)
 
 

@@ -4,7 +4,8 @@ import { TABS, TAB_GROUPS } from "../nav/tabs";
 import { useAuth } from "../lib/auth";
 
 export function Shell() {
-  const { principal, logout } = useAuth();
+  const { principal, logout, hasCapability } = useAuth();
+  const canManageUsers = hasCapability("manage_users");
   return (
     <div className="min-h-screen bg-canvas text-ink flex">
       <aside className="w-64 shrink-0 bg-card border-r border-line px-3 py-4 overflow-y-auto" data-testid="sidebar">
@@ -27,6 +28,19 @@ export function Shell() {
             </div>
           ))}
         </nav>
+        {/* Settings/Admin is NOT an analytics tab — it lives at the bottom of the sidebar,
+            shown only to users with the manage_users capability (backend-enforced too). */}
+        {canManageUsers && (
+          <div className="mt-4 pt-3 border-t border-line">
+            <div className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">Admin</div>
+            <NavLink to="/settings/users" data-testid="nav-settings"
+              className={({ isActive }) =>
+                `block px-2 py-1.5 rounded-lg text-sm mb-0.5 ${isActive
+                  ? "bg-brandSoft text-brand font-medium" : "text-ink/80 hover:bg-slate-50"}`}>
+              Settings
+            </NavLink>
+          </div>
+        )}
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 bg-card border-b border-line flex items-center justify-between px-6">

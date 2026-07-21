@@ -245,6 +245,30 @@ class WellnessConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class User(Base):
+    """Real platform user (Sprint 14). Admin-managed, tenant-scoped, password-authenticated
+    (bcrypt hash only — never plain text). `user_role` is the granular testing-phase role;
+    `base_role` maps it onto the existing 3-tier Role for backward-compatible route auth.
+    `client_ids` (JSON) scopes Client HR Viewers to their assigned clients. Deactivated
+    users (`status='inactive'`) cannot log in."""
+    __tablename__ = "app_user"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    email: Mapped[str] = mapped_column(String(255), index=True, unique=True)
+    username: Mapped[str] = mapped_column(String(128))
+    display_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    base_role: Mapped[str] = mapped_column(String(16))          # analyst|reviewer|admin
+    user_role: Mapped[str] = mapped_column(String(32))          # granular testing-phase role
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    broker_id: Mapped[str] = mapped_column(String(64), nullable=True)
+    client_ids: Mapped[list] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(16), default="active")   # active|inactive
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_by: Mapped[str] = mapped_column(String(128), nullable=True)
+    last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+
 class TermsAudit(Base):
     """Audit of every terms confirmation / rejection / ignore decision (before/after)."""
     __tablename__ = "terms_audit"

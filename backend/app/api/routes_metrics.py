@@ -43,6 +43,8 @@ _DISPATCH = {
 
 
 def _run(metric, principal, db, filters):
+    from ..api.deps import enforce_client_scope
+    enforce_client_scope(principal, filters)   # Client HR Viewer restricted to assigned clients
     ctx = MetricContext(db, principal["tenant_id"], filters)
     return _DISPATCH[metric](ctx)
 

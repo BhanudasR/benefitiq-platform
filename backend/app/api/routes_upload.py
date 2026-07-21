@@ -2,7 +2,7 @@
 UploadBatch, and audit. NO mapping/analytics here — that is the next sprint.
 Low quality never blocks this upload; it will block blind analytics downstream."""
 from fastapi import APIRouter, Depends, UploadFile, File, Form
-from ..api.deps import require_role
+from ..api.deps import require_role, require_capability
 from ..core.security import Role
 from ..services.storage import get_store
 from ..services.hashing import sha256_bytes
@@ -16,6 +16,7 @@ async def upload_raw(
     file_kind: str = Form(...),                 # policy|member|claims|terms|benchmark|pdf
     client_id: str = Form(default=""),
     principal: dict = Depends(require_role(Role.ANALYST)),
+    _cap: dict = Depends(require_capability("upload")),   # real users need the 'upload' capability (read-only testers cannot)
 ):
     data = await file.read()
     digest = sha256_bytes(data)

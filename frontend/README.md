@@ -106,6 +106,17 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 14 — Settings / Admin (User Management & RBAC)
+A capability-gated **Settings / Admin** area (`src/pages/AdminUsers.tsx`) — reached from a Settings entry
+at the bottom of the sidebar, **not** one of the 20 analytics tabs — lets an admin create users, assign
+roles & client access, reset passwords (one-time temporary-password reveal) and deactivate/activate. It is
+driven by the governed `api.admin.*` client (`/admin/*`) and by `POST /auth/login` for real users.
+- The Settings entry shows only when the principal has the `manage_users` capability (`useAuth().hasCapability`);
+  the `/settings/users` route is guarded client-side (`RequireCapability`) **and** enforced server-side.
+- Backend is the source of truth for access; the frontend only mirrors permissions. Read-only Testers and
+  non-admins never see or reach the admin page. No passwords are handled in the browser beyond the one-time
+  temp-password reveal returned by the API.
+
 ## Sprint 13 — Wellness Intelligence 4 sub-tabs wired to the /wellness engines
 All four Wellness sub-tabs (`src/pages/Wellness.tsx`) are **single-sourced** from the governed Sprint 12
 `/wellness/*` APIs via `api.wellness(name)` (`src/lib/api.ts`); the Sprint-8 placeholders are removed. No

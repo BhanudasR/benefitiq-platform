@@ -49,3 +49,55 @@ def decode_token(token: str) -> dict:
 
 def has_role(actual: Role, required: Role) -> bool:
     return _ORDER[actual] >= _ORDER[required]
+
+
+# --- Sprint 14: expanded testing-phase roles + capability model (additive) ---
+# Each granular user_role maps to (a) an existing base Role for backward-compatible route
+# auth and (b) a capability set for the new admin/security behaviour. Capabilities:
+#   admin · manage_users · upload · approve · view · client_scoped · read_only
+ROLE_DEFS: dict[str, dict] = {
+    "platform_admin": {"base": Role.ADMIN,    "label": "Platform Admin",
+                       "caps": {"admin", "manage_users", "upload", "approve", "view"}},
+    "broker_admin":   {"base": Role.ADMIN,    "label": "Broker Admin",
+                       "caps": {"admin", "manage_users", "upload", "approve", "view"}},
+    "eb_head":        {"base": Role.REVIEWER, "label": "EB Head",
+                       "caps": {"upload", "approve", "view"}},
+    "consultant_rm":  {"base": Role.ANALYST,  "label": "Consultant / RM",
+                       "caps": {"upload", "view"}},
+    "analyst":        {"base": Role.ANALYST,  "label": "Analyst",
+                       "caps": {"view"}},
+    "client_hr_viewer": {"base": Role.ANALYST, "label": "Client HR Viewer",
+                       "caps": {"view", "client_scoped"}},
+    "read_only_tester": {"base": Role.ANALYST, "label": "Read-only Tester",
+                       "caps": {"view", "read_only"}},
+}
+
+
+def role_def(user_role: str) -> dict:
+    if user_role not in ROLE_DEFS:
+        raise ValueError(f"unknown user_role '{user_role}'")
+    return ROLE_DEFS[user_role]
+
+
+def base_role_for(user_role: str) -> Role:
+    return role_def(user_role)["base"]
+
+
+def capabilities_for(user_role: str) -> list[str]:
+    return sorted(role_def(user_role)["caps"])
+
+
+def create_login_token(*, subject: str, tenant_id: str, user_role: str,
+                       broker_id: str | None = None, client_ids: list | None = None) -> str:
+    """Token for a real logged-in user: carries the base role (for existing routes) plus
+    granular user_role, capabilities, broker_id and client_ids for the new RBAC behaviour."""
+    now = datetime.now(timezone.utc)
+    claims = {
+        "sub": subject, "tenant_id": tenant_id,
+        "role": base_role_for(user_role).value,          # existing require_role routes use this
+        "user_role": user_role, "capabilities": capabilities_for(user_role),
+        "broker_id": broker_id, "client_ids": client_ids or [],
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=settings.jwt_ttl_minutes)).timestamp()),
+    }
+    return jwt.encode(claims, settings.jwt_secret, algorithm=settings.jwt_alg)

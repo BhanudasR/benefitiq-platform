@@ -25,7 +25,11 @@ async function req(path: string, init: RequestInit = {}): Promise<any> {
   return res.json();
 }
 
-export type Principal = { sub: string; tenant_id: string; role: string };
+export type Principal = {
+  sub: string; tenant_id: string; role: string;
+  user_role?: string | null; capabilities?: string[] | null;
+  broker_id?: string | null; client_ids?: string[] | null;
+};
 
 /** Build a query string from params (drops empty values). No business logic. */
 function qs(params: Record<string, any>): string {
@@ -70,6 +74,33 @@ export const api = {
   // governed read-only wellness engines (Sprint 12 backend); UI renders fields only
   wellness(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/wellness/${name}${qs(params)}`);
+  },
+  // real-user login (Sprint 14) — email + password against the admin-managed user store
+  async loginUser(email: string, password: string): Promise<any> {
+    const r = await req("/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    setToken(r.access_token);
+    return r;
+  },
+  // admin user management (Sprint 14). Protected server-side; UI mirrors backend permissions.
+  admin: {
+    roles(): Promise<any> { return req("/admin/roles"); },
+    listUsers(): Promise<any> { return req("/admin/users"); },
+    getUser(id: string): Promise<any> { return req(`/admin/users/${id}`); },
+    createUser(body: Record<string, any>): Promise<any> {
+      return req("/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    },
+    updateUser(id: string, body: Record<string, any>): Promise<any> {
+      return req(`/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    },
+    resetPassword(id: string): Promise<any> { return req(`/admin/users/${id}/reset-password`, { method: "POST" }); },
+    deactivate(id: string): Promise<any> { return req(`/admin/users/${id}/deactivate`, { method: "POST" }); },
+    activate(id: string): Promise<any> { return req(`/admin/users/${id}/activate`, { method: "POST" }); },
+    setClients(id: string, client_ids: string[]): Promise<any> {
+      return req(`/admin/users/${id}/clients`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_ids }) });
+    },
   },
   logout() { setToken(null); },
 };

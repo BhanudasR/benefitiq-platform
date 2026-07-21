@@ -100,6 +100,25 @@ Restricted → advisory blocked; Conditional → caveats; missing data → cauti
 certainty; low evidence completeness lowers confidence. Frontend wiring of these engines into the Sprint 9
 pending-states is a future sprint.
 
+## Sprint 14 — Admin User Management + RBAC foundation (additive)
+Real, admin-managed users land without disturbing the pilot auth or existing tests. New `app_user` table
+(migration `e9c3f7a1b2d4`, down_revision `d8a2b4c6e1f3`) stores email/bcrypt-hash/base_role/user_role/
+tenant/broker/client_ids/status. `POST /auth/login` authenticates real users (bcrypt, blocks inactive,
+updates last_login, audits LOGIN) and mints a token carrying the base role (for existing `require_role`
+routes) **plus** granular `user_role`, capabilities, broker_id and client_ids. `/auth/token` and `/auth/me`
+are unchanged (backward-compatible; `/auth/me` additively echoes the new fields when present).
+- **Roles → capabilities** (`core/security.py` `ROLE_DEFS`): Platform/Broker Admin · EB Head · Consultant/RM
+  · Analyst · Client HR Viewer · Read-only Tester, each mapped to a base `Role` + capability set
+  (admin/manage_users/upload/approve/view/client_scoped/read_only).
+- **Guards** (`api/deps.py`): `require_capability` and `require_admin` are backward-compatible — legacy
+  tokens (no `capabilities` claim) are unrestricted, so existing routes/tests are untouched; only real-login
+  users are constrained. `enforce_client_scope` restricts Client HR Viewers to their assigned clients on the
+  data routers.
+- **Admin API** (`routes_admin.py`, `services/users.py`): `/admin/users` CRUD + reset-password/deactivate/
+  activate/clients + `/admin/roles`; temporary password shown once (never stored/logged in plain text);
+  every action audited via the append-only `AuditLog`. Backend is the source of truth; the SPA Settings/Admin
+  area is capability-gated (client + server) and is NOT one of the 20 analytics tabs.
+
 ## Sprint 12 — Wellness Intelligence engines (Analytics/decision-support layer)
 Backend-only, claim-pattern-driven wellness intelligence in `services/wellness/`, composing existing
 governed metric outputs (ailment / claims / relation / trends / demographics). Cohort-level and

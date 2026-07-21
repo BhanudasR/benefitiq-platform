@@ -13,6 +13,7 @@ import { RecommendedStrategy } from "./pages/RecommendedStrategy";
 import { PlacementTrigger } from "./pages/PlacementTrigger";
 import { WellnessShell } from "./pages/WellnessShell";
 import { WellnessOverview, WellnessOpportunity, WellnessPlanner, WellnessRoi } from "./pages/Wellness";
+import { AdminUsers } from "./pages/AdminUsers";
 import { Placeholder } from "./pages/Placeholder";
 import { Login } from "./pages/Login";
 import { Gallery } from "./pages/Gallery";
@@ -21,6 +22,13 @@ import { useAuth } from "./lib/auth";
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+/** Capability guard for Settings/Admin — backend also enforces this; the client guard just
+ *  avoids rendering an admin page for users who lack the capability. */
+function RequireCapability({ cap, children }: { cap: string; children: React.ReactNode }) {
+  const { hasCapability } = useAuth();
+  return hasCapability(cap) ? <>{children}</> : <Navigate to="/executive-summary" replace />;
 }
 
 /** Top-level tabs with a single wired page (parents with sub-tabs are handled by
@@ -56,6 +64,9 @@ export function AppRoutes() {
           <Route path="recommended-strategy" element={<RecommendedStrategy />} />
           <Route path="placement-trigger" element={<PlacementTrigger />} />
         </Route>
+
+        {/* Settings / Admin — NOT an analytics tab; capability-guarded (backend-enforced too) */}
+        <Route path="/settings/users" element={<RequireCapability cap="manage_users"><AdminUsers /></RequireCapability>} />
 
         {/* Wellness Intelligence — exactly the 4 demo sub-tabs */}
         <Route path="/wellness" element={<WellnessShell />}>
