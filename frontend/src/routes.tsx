@@ -4,6 +4,9 @@ import { Shell } from "./components/Shell";
 import { TABS } from "./nav/tabs";
 import { ExecutiveSummary } from "./pages/ExecutiveSummary";
 import { DataOnboarding } from "./pages/DataOnboarding";
+import { Claims } from "./pages/Claims";
+import { Ailment } from "./pages/Ailment";
+import { Hospital } from "./pages/Hospital";
 import { RenewalShell } from "./pages/RenewalShell";
 import { RenewalIntelligence } from "./pages/RenewalIntelligence";
 import { ClaimsDrivers } from "./pages/ClaimsDrivers";
@@ -40,6 +43,9 @@ function RequireCapability({ cap, children }: { cap: string; children: React.Rea
 const WIRED: Record<string, React.ReactNode> = {
   "/executive-summary": <ExecutiveSummary />,
   "/data-onboarding": <DataOnboarding />,
+  "/claims": <Claims />,
+  "/ailment": <Ailment />,
+  "/hospital": <Hospital />,
 };
 
 // parents render nested sub-routes, not a flat page

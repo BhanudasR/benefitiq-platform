@@ -106,6 +106,25 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 19 — Demo visual parity: chart kit + Executive Summary + Claims / Ailment / Hospital
+A reusable **governed SVG chart kit** (`src/components/ui/charts/`) — `KpiStat, Donut, BarH, BarV,
+StackedBar, Gauge, Sparkline, Quadrant, Heatmap` + an evidence-aware `ChartFrame` (title, DQ badge,
+caveat overlay, No-Data state, evidence drawer). No chart library / no new dependency.
+- **Chart-math guardrail:** value→pixel geometry lives ONLY in the charts layer, which is outside the
+  no-KPI-math guard path (guard scans `src/pages/*` + `format.ts`). Pages stay strictly math-free and
+  pass only governed API values in; displayed numbers are always the API value, formatted for the eye.
+- **Executive Summary** upgraded to a premium CXO dashboard: hero KPI band, ICR **gauge**, top claim-driver
+  **bar**, claim-mix **donut**, ICR **trend** sparkline, and governed summary widgets (renewal
+  recommendation, placement state, benchmark comparable, wellness posture) — all from existing APIs, with
+  evidence/caveats retained.
+- **Claims / Ailment / Hospital** tabs move from Placeholder to chart-led governed dashboards wired to
+  `/metrics/{claims,trends,large-claims,ailment,hospital}`: paid-vs-outstanding, cashless-vs-reimbursement,
+  status mix, claim trend, large-claim indicator (Claims); top ailments, frequency×severity quadrant,
+  recurring groups, share (Ailment); top providers, network split, concentration, avg claim size (Hospital).
+- **No fabrication:** fields the API does not return (hospital city/location, ailment taxonomy beyond
+  `diagnosis_code_l1`) render **"Not available"**. Every dashboard has a governed No-Data state, caveats,
+  confidence and an evidence drawer. Nav structure unchanged (20 tabs / 7-6-4-7 sub-tabs / Settings outside).
+
 ## Sprint 18 — Placement Intelligence (parent tab + 7 sub-tabs)
 Placement Intelligence becomes a **parent tab** (`PlacementShell`) — still one of the 20 analytics
 tabs — with exactly 7 sub-tabs (`src/pages/Placement.tsx`), each single-sourced from the governed
