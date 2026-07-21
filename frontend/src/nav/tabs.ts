@@ -35,6 +35,18 @@ export const RENEWAL_SUBTABS: SubTab[] = [
   { id: "renewal-placement-trigger", label: "Placement Trigger / Next Best Action", path: "/renewal/placement-trigger", wired: true },
 ];
 
+/** Benefits & Benchmarking — parent tab with exactly the 7 benchmarking sub-tabs.
+ *  Benchmarks benefit DESIGN + policy T&C only (never claims). Still ONE of the 20 tabs. */
+export const BENCHMARKING_SUBTABS: SubTab[] = [
+  { id: "benchmarking-overview", label: "Benchmark Overview", path: "/benchmarking", end: true, wired: true },
+  { id: "benchmarking-features", label: "Benefit Design Features", path: "/benchmarking/features", wired: true },
+  { id: "benchmarking-policy-terms", label: "Policy Terms Comparison", path: "/benchmarking/policy-terms", wired: true },
+  { id: "benchmarking-peer", label: "Market / Peer Comparison", path: "/benchmarking/peer-comparison", wired: true },
+  { id: "benchmarking-gaps", label: "Benefit Gap Analysis", path: "/benchmarking/gap-analysis", wired: true },
+  { id: "benchmarking-discussion", label: "Discussion Points", path: "/benchmarking/discussion-points", wired: true },
+  { id: "benchmarking-evidence", label: "Evidence / Export", path: "/benchmarking/evidence", wired: true },
+];
+
 /** Wellness Intelligence — exactly the 4 demo sub-tabs (no more). */
 export const WELLNESS_SUBTABS: SubTab[] = [
   { id: "wellness-overview", label: "Wellness Overview", path: "/wellness", end: true },
@@ -61,7 +73,7 @@ export const TABS: Tab[] = [
   { id: "rejection", label: "Rejection", path: "/rejection", group: "Core Analytics" },
 
   // 3 — Benefits & Renewal Strategy
-  { id: "benchmarking", label: "Benefits & Benchmarking", path: "/benchmarking", group: "Benefits & Renewal" },
+  { id: "benchmarking", label: "Benefits & Benchmarking", path: "/benchmarking", group: "Benefits & Renewal", wired: true, subTabs: BENCHMARKING_SUBTABS },
   { id: "renewal", label: "Renewal Intelligence", path: "/renewal", group: "Benefits & Renewal", wired: true, subTabs: RENEWAL_SUBTABS },
 
   // 4 — Strategic Advisory

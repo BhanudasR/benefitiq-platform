@@ -75,6 +75,10 @@ export const api = {
   wellness(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/wellness/${name}${qs(params)}`);
   },
+  // governed read-only benefit benchmarking (Sprint 15 backend); design + T&C only, no claims
+  benchmarking(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/benchmarking/${name}${qs(params)}`);
+  },
   // real-user login (Sprint 14) — email + password against the admin-managed user store
   async loginUser(email: string, password: string): Promise<any> {
     const r = await req("/auth/login", {

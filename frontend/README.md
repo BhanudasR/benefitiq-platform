@@ -106,6 +106,21 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 16 — Benefit Benchmarking UI (parent tab + 7 sub-tabs)
+Benefits & Benchmarking becomes a **parent tab** (`BenchmarkingShell`) — still one of the 20 analytics
+tabs — hosting exactly 7 sub-tabs (`src/pages/Benchmarking.tsx`), each single-sourced from the governed
+Sprint 15 `/benchmarking/*` APIs via `api.benchmarking(name)`: Benchmark Overview (`/overview`) · Benefit
+Design Features (`/features`) · Policy Terms Comparison (`/policy-terms-comparison`) · Market / Peer
+Comparison (`/peer-comparison`) · Benefit Gap Analysis (`/gap-analysis`) · Discussion Points
+(`/discussion-points`) · Evidence / Export (`/evidence/{kind}`).
+- Benefit DESIGN + policy terms only — the UI never requests, renders or computes claims / ICR /
+  utilization / ailment / hospital-usage / premium-adequacy (asserted by a claims-specific denylist test
+  that does not false-positive on legitimate benefit terms like "pre / post hospitalization" or "co-pay").
+- Governance states: invalid / too-small peer group → clear "Not Comparable — peer group too small" banner
+  (no fabricated benchmark); Not-Comparable features show their reason; missing response → premium pending
+  state; every view shows the peer-group definition, confidence and evidence/caveats. Classification badges
+  (Same / Above / Below / Different / Not Comparable), evidence drawer, no browser-side benchmark math.
+
 ## Sprint 14 — Settings / Admin (User Management & RBAC)
 A capability-gated **Settings / Admin** area (`src/pages/AdminUsers.tsx`) — reached from a Settings entry
 at the bottom of the sidebar, **not** one of the 20 analytics tabs — lets an admin create users, assign

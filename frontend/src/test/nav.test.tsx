@@ -41,6 +41,16 @@ describe("navigation shell", () => {
     expect(TABS.find((t) => t.id === "balanced-design")).toBeUndefined();
   });
 
+  it("Benefits & Benchmarking is one main tab with exactly 7 sub-tabs", () => {
+    const bm = TABS.find((t) => t.id === "benchmarking")!;
+    expect(bm.subTabs).toHaveLength(7);
+    expect(bm.subTabs!.map((s) => s.label)).toEqual([
+      "Benchmark Overview", "Benefit Design Features", "Policy Terms Comparison",
+      "Market / Peer Comparison", "Benefit Gap Analysis", "Discussion Points", "Evidence / Export",
+    ]);
+    expect(TABS).toHaveLength(20);   // still one of the 20 main tabs
+  });
+
   it("Wellness Intelligence has exactly the 4 demo sub-tabs", () => {
     const wellness = TABS.find((t) => t.id === "wellness")!;
     expect(wellness.subTabs).toHaveLength(4);

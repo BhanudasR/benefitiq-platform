@@ -13,6 +13,8 @@ import { RecommendedStrategy } from "./pages/RecommendedStrategy";
 import { PlacementTrigger } from "./pages/PlacementTrigger";
 import { WellnessShell } from "./pages/WellnessShell";
 import { WellnessOverview, WellnessOpportunity, WellnessPlanner, WellnessRoi } from "./pages/Wellness";
+import { BenchmarkingShell } from "./pages/BenchmarkingShell";
+import { BenchmarkOverview, BenchmarkFeatures, BenchmarkPolicyTerms, BenchmarkPeer, BenchmarkGaps, BenchmarkDiscussion, BenchmarkEvidence } from "./pages/Benchmarking";
 import { AdminUsers } from "./pages/AdminUsers";
 import { Placeholder } from "./pages/Placeholder";
 import { Login } from "./pages/Login";
@@ -39,7 +41,7 @@ const WIRED: Record<string, React.ReactNode> = {
 };
 
 // parents render nested sub-routes, not a flat page
-const NESTED = new Set(["/renewal", "/wellness"]);
+const NESTED = new Set(["/renewal", "/wellness", "/benchmarking"]);
 
 export function AppRoutes() {
   return (
@@ -63,6 +65,17 @@ export function AppRoutes() {
           <Route path="balanced-design" element={<BalancedBenefitDesign />} />
           <Route path="recommended-strategy" element={<RecommendedStrategy />} />
           <Route path="placement-trigger" element={<PlacementTrigger />} />
+        </Route>
+
+        {/* Benefits & Benchmarking — parent tab with exactly the 7 benchmarking sub-tabs */}
+        <Route path="/benchmarking" element={<BenchmarkingShell />}>
+          <Route index element={<BenchmarkOverview />} />
+          <Route path="features" element={<BenchmarkFeatures />} />
+          <Route path="policy-terms" element={<BenchmarkPolicyTerms />} />
+          <Route path="peer-comparison" element={<BenchmarkPeer />} />
+          <Route path="gap-analysis" element={<BenchmarkGaps />} />
+          <Route path="discussion-points" element={<BenchmarkDiscussion />} />
+          <Route path="evidence" element={<BenchmarkEvidence />} />
         </Route>
 
         {/* Settings / Admin — NOT an analytics tab; capability-guarded (backend-enforced too) */}
