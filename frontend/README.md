@@ -106,6 +106,22 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 13 — Wellness Intelligence 4 sub-tabs wired to the /wellness engines
+All four Wellness sub-tabs (`src/pages/Wellness.tsx`) are **single-sourced** from the governed Sprint 12
+`/wellness/*` APIs via `api.wellness(name)` (`src/lib/api.ts`); the Sprint-8 placeholders are removed. No
+browser-side wellness/ROI math.
+- **Wellness Overview** (`/wellness/overview`) — posture, top wellness categories (claim-driven),
+  preventable vs supportive incurred, chronic/recurring signal, engagement-baseline "pending".
+- **Opportunity & Recommendation** (`/wellness/recommendations` only) — ranked cohort-level opportunities,
+  each with ailment category, potential impact (estimate), claim driver, suggested intervention, employer/
+  employee impact, confidence and next best action.
+- **Wellness Planner** (`/wellness/planner`) — sequenced intervention plan + foundation status.
+- **ROI & Impact Tracking** (`/wellness/roi-impact`) — per-category tracking basis, estimate/tracking-basis
+  labels, pending actuals — no guaranteed-saving language.
+- Privacy-safe throughout: k-anonymity suppression surfaced as a privacy note; cohort-level only, no PII, no
+  individual targeting, no medical advice. Restricted → advisory-blocked; Conditional → caveats; Pending /
+  No-Data → premium pending state. The no-frontend-math guard covers the page.
+
 ## Sprint 11 — Recommended Strategy & Placement Trigger wired to the recommendation engines
 Both sub-tabs are now **single-sourced** from the governed Sprint 10 recommendation APIs via
 `api.recommendation(name)` (`src/lib/api.ts`); the earlier `/metrics/icr`, `/simulation/adjusted-icr` and

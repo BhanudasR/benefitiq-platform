@@ -67,5 +67,9 @@ export const api = {
   recommendation(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/recommendations/${name}${qs(params)}`);
   },
+  // governed read-only wellness engines (Sprint 12 backend); UI renders fields only
+  wellness(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/wellness/${name}${qs(params)}`);
+  },
   logout() { setToken(null); },
 };
