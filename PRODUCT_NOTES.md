@@ -136,6 +136,57 @@ role→permission mapping, and a permission-based dependency (e.g. `require_perm
 existing `require_role`; map the expanded broker/client roles onto permission groups. No change to tenant
 isolation, JWT issuance or audit is required — the ladder is replaced by a superset, not redesigned.
 
+## Benefit Benchmarking module (roadmap — future sprints; corrected principle)
+> **Benefit Benchmarking benchmarks ONLY benefit design and policy terms & conditions — never claims
+> experience.** It compares policy terms, benefit design, limits/sub-limits, eligibility, coverage features
+> and service/access terms against a defined peer group. It must NOT benchmark claims experience, ICR,
+> average claim size, claim frequency, large claims, ailment pressure, hospital utilization, premium
+> adequacy or renewal pricing impact. Claims never drive the benchmark classification.
+
+**Clear module separation (do not mix):**
+1. **Benefits & Benchmarking** — compares policy terms / benefit design / limits / eligibility / coverage /
+   service-access terms vs peer benchmarks.
+2. **Claims Intelligence** — claims experience, ailment, frequency, severity, cost, ICR, utilization,
+   hospital, settlement.
+3. **Renewal Intelligence** — combines benefit gaps + claims + premium + policy terms + simulations to
+   decide what changes at renewal.
+
+**Benefit Benchmarking module structure (7):** Benchmark Overview · Benefit Design Features · Policy Terms
+Comparison · Market/Peer Comparison · Benefit Gap Analysis · Recommended Benefit Discussion Points ·
+Evidence/Export.
+
+**Core benchmarking objects:** Sum Insured · Family Definition · Covered Relationships · Room Rent · ICU
+Limit · Co-pay · Parent Co-pay · Disease-wise Capping · Procedure-wise Capping · Maternity Limit · Newborn
+Cover · PED/Waiting Period · Daycare · Ambulance · Pre/Post Hospitalization · Corporate Buffer · OPD ·
+Wellness/Preventive Benefit · Mental Health Cover · Modern Treatment · Network/Cashless Terms ·
+Non-payables/Exclusions · Domiciliary · Lasik/Robotic/Advanced Treatments.
+
+**Benchmark classification (design/T&C only):** Same as Benchmark · Above Benchmark · Below Benchmark ·
+Different from Benchmark · Not Available / Not Comparable.
+
+**Explicitly REMOVED from the benchmarking core:** claims cost, ICR, average claim size, claim frequency,
+large claims, ailment pressure, hospital utilization, premium adequacy, renewal pricing impact.
+
+**Linkage (one-way, downstream):** Benefit Benchmarking may produce benefit gaps + discussion points; those
+gaps can be *sent to* Renewal Intelligence / Savings Sandbox for impact simulation. Claims context lives
+there, NOT in the benchmark classification.
+
+**Correct future flow:** Policy PDF/T&C → extract benefit terms → normalize benefit features → select peer
+group → compare policy benefit design → classify (Same/Above/Below/Different/NA) → identify benefit gaps →
+recommend discussion points → (optional) send selected gaps to Renewal Intelligence/Sandbox for impact.
+
+**Revised future sprint sequence:** Sprint 14 — Benefit Benchmarking backend foundation (policy terms + peer
+benefit features only). Sprint 15 — Benefit Benchmarking UI. Sprint 16 — integration (send selected benchmark
+gaps to Renewal Intelligence/Sandbox for impact analysis).
+
+**Gold Standard rules:** no frontend benchmark calculation; no mock benchmark values; no benchmark without a
+peer-group definition; no benchmark without source + confidence; **no claims-based benchmark classification**;
+benchmarking compares benefit design, not claim utilization; claims impact is optional downstream context in
+Renewal Intelligence only; every output carries source evidence, caveats, peer-group definition and
+confidence; start with the internal broker-portfolio benefit-design benchmark, add a curated external market
+benchmark repository later; never assume external benchmark values without a source. Do not implement now —
+roadmap/architecture direction only.
+
 ## Procedure Intelligence Repository + Benchmark Master (roadmap — future sprint)
 > **BenefitIQ must maintain a governed, versioned Procedure Intelligence Repository — a benchmark master
 > of ~350–500 hospitalization procedures (covering >95% of Indian corporate GMC hospitalization cost),
