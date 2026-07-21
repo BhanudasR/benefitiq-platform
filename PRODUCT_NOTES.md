@@ -224,3 +224,25 @@ benchmark logic — backend is the source of truth; (10) no mock pricing in prod
 aliases and free-text claim-description variation (reuse the governed mapping/alias discipline from
 onboarding). **Do not implement until separately approved** — roadmap capability and architecture direction
 only; sequence it as a future sprint after the current UI/navigation work.
+
+## Benchmark Gap → Renewal / Savings Sandbox linkage (Sprint 17 — IMPLEMENTED, one-way, governed)
+A broker-selected Benefit Benchmarking gap can be flagged or sent DOWNSTREAM to Renewal
+Intelligence / the Savings Sandbox for impact simulation. This linkage is **strictly one-way**
+and is the ONLY seam allowed to touch both benchmarking and simulation:
+- The benchmarking classification package stays claims-free and never imports simulation. The
+  linkage layer (`app/services/linkage/`) reads benchmarking output (upstream) and delegates to
+  the existing simulation service (downstream) — it invents no new math.
+- **No reverse flow:** claims / ICR / utilization / cost impact never re-enter benchmarking
+  classification. Benchmarking still compares benefit design + policy terms only.
+- A gap is **server-derived** from governed benchmarking data (client-sent benchmark values are
+  never trusted) and **snapshot** at creation into a persisted, auditable `benchmark_action`
+  row (evidence, peer group, classification, confidence, caveats, append-only action history)
+  for Client Pack / RM follow-up later. The snapshot is never recomputed for an existing action.
+- Only six features map to a governed Sandbox lever (`SANDBOX_LEVER_MAP`: room_rent, copay,
+  parent_copay, disease_capping, maternity_limit, corporate_buffer). Every other feature is
+  **discussion-only / not simulation-ready** with a reason — no lever is invented.
+- The sandbox preview delegates to the simulation service; output is a scenario estimate, not a
+  guaranteed saving, and operational ICR is unchanged.
+- Writes require the explicit `benchmark_action` capability (platform_admin, broker_admin,
+  eb_head, consultant_rm, analyst). Legacy pre-RBAC tokens are DENIED write access; Read-only
+  Testers and Client HR Viewers cannot create/send. Reads stay tenant-isolated and client-scoped.

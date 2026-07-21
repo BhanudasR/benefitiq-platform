@@ -263,6 +263,41 @@ class BenchmarkObservation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class BenchmarkAction(Base):
+    """Sprint 17 — a broker-selected Benefit Benchmarking gap flagged / sent DOWNSTREAM to
+    Renewal Intelligence / Savings Sandbox. Strictly ONE-WAY: the benchmark design/T&C
+    evidence is SNAPSHOT at creation time and never recomputed for this action, so claims /
+    ICR / utilization can never flow back into benchmarking classification. Tenant-scoped and
+    auditable (append-only action_history) for Client Pack / RM follow-up later. NO claims
+    columns ever — this record carries benefit-design + policy-terms evidence only."""
+    __tablename__ = "benchmark_action"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    client_id: Mapped[str] = mapped_column(String(64), nullable=True)
+    policy_id: Mapped[str] = mapped_column(String(64), nullable=True)
+    policy_version_id: Mapped[str] = mapped_column(String(64), nullable=True)
+    feature_id: Mapped[str] = mapped_column(String(48), index=True)
+    feature_name: Mapped[str] = mapped_column(String(128))
+    current_client_value: Mapped[str] = mapped_column(Text, nullable=True)   # snapshot (num/text as str)
+    benchmark_value: Mapped[str] = mapped_column(Text, nullable=True)        # snapshot
+    classification: Mapped[str] = mapped_column(String(48))                  # snapshot
+    peer_group_definition: Mapped[dict] = mapped_column(JSON, nullable=True) # snapshot
+    confidence: Mapped[str] = mapped_column(String(16), nullable=True)       # snapshot label
+    confidence_score: Mapped[float] = mapped_column(Numeric(6, 3), nullable=True)  # snapshot
+    evidence: Mapped[dict] = mapped_column(JSON, nullable=True)              # snapshot source evidence
+    caveats: Mapped[dict] = mapped_column(JSON, nullable=True)               # snapshot
+    selected_action: Mapped[str] = mapped_column(String(32))                # flag_for_discussion|send_to_sandbox|send_to_renewal_strategy|mark_reviewed
+    target_module: Mapped[str] = mapped_column(String(32))                  # renewal_sandbox|renewal_strategy|discussion_only
+    simulation_ready: Mapped[bool] = mapped_column(Boolean, default=False)
+    sandbox_lever: Mapped[str] = mapped_column(String(48), nullable=True)
+    not_ready_reason: Mapped[str] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="flagged")      # flagged|sent|reviewed|archived
+    action_history: Mapped[list] = mapped_column(JSON, default=list)        # append-only audit trail
+    created_by: Mapped[str] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 class WellnessConfig(Base):
     """Tenant-scoped governed thresholds + privacy settings for the Wellness engines
     (Sprint 12). Opportunity cutoffs, k-anonymity minimum cohort size and confidence

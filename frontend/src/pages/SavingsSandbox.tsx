@@ -1,11 +1,46 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { fmtCurrency, fmtPercent, fmtNumber } from "../lib/format";
+import { fmtCurrency, fmtPercent, fmtNumber, fmtValue } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge, CaveatBanner,
   RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, ScenarioControl, EmployeeImpactCallout } from "../components/ui/sandbox";
+
+/** Read-only "From benchmark gap" context banner (Sprint 17). When the Savings Sandbox is
+ *  opened from a benchmark action (?fromAction=<id>), show the originating gap's design/T&C
+ *  context — display only, no benchmark or simulation math here. Completes the one-way flow. */
+function FromBenchmarkGapBanner() {
+  const [sp] = useSearchParams();
+  const actionId = sp.get("fromAction") || undefined;
+  const q = useQuery({
+    queryKey: ["bm-action", actionId], enabled: !!actionId,
+    queryFn: () => api.benchmarkActions.get(actionId as string),
+  });
+  if (!actionId) return null;
+  const a = q.data;
+  if (!a) return null;
+  return (
+    <Card className="p-4 border-l-4 border-l-brand" >
+      <div data-testid="from-benchmark-gap-banner">
+        <div className="text-xs font-semibold uppercase tracking-wide text-brand mb-1">From benchmark gap</div>
+        <div className="text-sm font-semibold text-ink">{a.feature_name}
+          <span className="ml-2 text-[11px] font-medium text-muted">({String(a.classification)})</span></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm mt-2">
+          <div><span className="text-muted">Client value: </span>{a.current_client_value != null ? fmtValue(a.current_client_value) : "—"}</div>
+          <div><span className="text-muted">Peer benchmark: </span>{a.benchmark_value != null ? fmtValue(a.benchmark_value) : "—"}</div>
+          <div><span className="text-muted">Peer group: </span>{String(a.peer_group_definition?.basis || "—")}</div>
+          <div><span className="text-muted">Confidence: </span>{String(a.confidence || "—")}</div>
+        </div>
+        <div className="text-xs text-muted mt-2">
+          {"Context only — this benchmark gap was flagged in Benefit Benchmarking (benefit design / policy terms). Impact simulation below is computed by the governed simulation service; benchmarking does not compute cost impact."}
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 type Lever = { id: string; label: string; params: Array<{ k: string; label: string; suffix?: string }> };
 
@@ -52,6 +87,7 @@ export function SavingsSandbox() {
   return (
     <div className="space-y-5">
       <SectionHeader title="Benefit & Savings Sandbox" subtitle="Governed what-if — all savings computed by the backend, never in the browser" />
+      <FromBenchmarkGapBanner />
       <Card className="p-4">
         <div className="flex flex-wrap gap-2 mb-4">
           {LEVERS.map((l) => (

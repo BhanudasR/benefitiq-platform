@@ -106,6 +106,24 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 17 — Benchmark Gap → Renewal / Savings Sandbox linkage (one-way, governed)
+A broker can flag a Benefit Benchmarking gap or send it downstream to the Savings Sandbox for
+impact simulation — strictly one-way. On the Benchmarking Gap Analysis and Benefit Design
+Features views each row shows a **Simulation-ready / Discussion-only** indicator, a **Flag for
+discussion** button and (only for the six mapped features — room rent, co-pay, parent co-pay,
+disease cap, maternity limit, corporate buffer) a **Send to Savings Sandbox** button, plus an
+action-status badge once acted. Buttons appear only for users with the `benchmark_action`
+capability (mirrors the backend write guard; Read-only Testers and Client HR Viewers never see
+them). All action creation is server-derived from governed benchmarking data via
+`api.benchmarkActions.*` — the browser computes no benchmark or simulation math.
+- A fixed caveat states impact simulation runs in Renewal Intelligence / Savings Sandbox and
+  that Benchmarking does not compute cost impact.
+- The Savings Sandbox shows a read-only **"From benchmark gap"** context banner when opened via
+  `?fromAction=<id>` (feature, client value, benchmark value, peer group, classification,
+  confidence) — display only. Impact figures still come from the governed simulation service;
+  operational ICR is unchanged and output remains a scenario estimate, not a guaranteed saving.
+- No claims / ICR / utilization ever appears in the benchmark action payload (design + T&C only).
+
 ## Sprint 16 — Benefit Benchmarking UI (parent tab + 7 sub-tabs)
 Benefits & Benchmarking becomes a **parent tab** (`BenchmarkingShell`) — still one of the 20 analytics
 tabs — hosting exactly 7 sub-tabs (`src/pages/Benchmarking.tsx`), each single-sourced from the governed

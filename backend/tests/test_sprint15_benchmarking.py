@@ -274,6 +274,9 @@ def test_alembic_single_head_and_chain_intact():
             downs[rev.group(1)] = down.group(1) if down else None
     referenced = {d for d in downs.values() if d}
     heads = [r for r in revs if r not in referenced]
-    assert heads == ["f1b5d9c3a7e2"], heads
+    # single linear head + single base; this sprint's revision is present in the chain
+    # (a later sprint may advance the head — asserted exactly in that sprint's own test)
+    assert len(heads) == 1, heads
+    assert "f1b5d9c3a7e2" in revs
     assert len([r for r, d in downs.items() if d is None]) == 1
     assert all(d in revs for d in referenced)

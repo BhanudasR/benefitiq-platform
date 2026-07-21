@@ -4,13 +4,15 @@ Viewers stay scoped to their assigned clients. No claims/ICR/utilization; no wri
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from ..api.deps import require_role, enforce_client_scope
+from ..api.deps import require_role, enforce_client_scope, require_write_capability
 from ..core.security import Role
 from ..db.session import get_db
 from ..services.benchmarking.base import BenchmarkContext
 from ..services.benchmarking import comparison as c_cmp, policy_terms as c_terms, gaps as c_gaps, discussion as c_disc
+from ..services.linkage import actions as linkage
 
 router = APIRouter(prefix="/benchmarking", tags=["benchmarking"])
 
@@ -86,3 +88,65 @@ def evidence(kind: str, filters: dict = Depends(_common), db: Session = Depends(
             "benchmark_basis", "config_version", "config_basis", "caveats", "assumptions",
             "evidence_completeness")
     return {k: res[k] for k in keys if k in res}
+
+
+# --- Sprint 17: Benchmark Gap → Renewal / Savings Sandbox linkage (one-way, governed) ------
+# Writes require the explicit `benchmark_action` capability (legacy tokens are DENIED). Reads
+# stay tenant-isolated and client-scoped like the rest of the benchmarking router.
+class CreateActionIn(BaseModel):
+    selected_action: str = "flag_for_discussion"
+
+
+class PatchActionIn(BaseModel):
+    status: str | None = None
+    selected_action: str | None = None
+
+
+def _scope(principal, act):
+    enforce_client_scope(principal, {"client_id": act.get("client_id")})
+
+
+@router.post("/gaps/{gap_id}/actions")
+def create_gap_action(gap_id: str, body: CreateActionIn, filters: dict = Depends(_common),
+                      db: Session = Depends(get_db),
+                      principal: dict = Depends(require_write_capability("benchmark_action"))):
+    enforce_client_scope(principal, filters)   # Client HR Viewer restricted to assigned clients
+    return linkage.create_action(db, principal, gap_id, filters, body.selected_action)
+
+
+@router.get("/actions")
+def list_actions(client_id: str | None = Query(None), db: Session = Depends(get_db),
+                 principal: dict = Depends(require_role(Role.ANALYST))):
+    f = {"client_id": client_id}
+    enforce_client_scope(principal, f)
+    return linkage.list_actions(db, principal["tenant_id"], client_id=f.get("client_id"))
+
+
+@router.get("/actions/{action_id}")
+def get_action(action_id: str, db: Session = Depends(get_db),
+               principal: dict = Depends(require_role(Role.ANALYST))):
+    act = linkage.get_action(db, principal["tenant_id"], action_id)
+    _scope(principal, act)
+    return act
+
+
+@router.post("/actions/{action_id}/send-to-sandbox")
+def send_action_to_sandbox(action_id: str, db: Session = Depends(get_db),
+                           principal: dict = Depends(require_write_capability("benchmark_action"))):
+    _scope(principal, linkage.get_action(db, principal["tenant_id"], action_id))
+    return linkage.send_to_sandbox(db, principal, action_id)
+
+
+@router.get("/actions/{action_id}/sandbox-preview")
+def action_sandbox_preview(action_id: str, db: Session = Depends(get_db),
+                           principal: dict = Depends(require_role(Role.ANALYST))):
+    _scope(principal, linkage.get_action(db, principal["tenant_id"], action_id))
+    return linkage.sandbox_preview(db, principal, action_id)
+
+
+@router.patch("/actions/{action_id}")
+def patch_action(action_id: str, body: PatchActionIn, db: Session = Depends(get_db),
+                 principal: dict = Depends(require_write_capability("benchmark_action"))):
+    _scope(principal, linkage.get_action(db, principal["tenant_id"], action_id))
+    return linkage.patch_action(db, principal, action_id, status=body.status,
+                                selected_action=body.selected_action)

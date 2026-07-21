@@ -55,17 +55,20 @@ def has_role(actual: Role, required: Role) -> bool:
 # Each granular user_role maps to (a) an existing base Role for backward-compatible route
 # auth and (b) a capability set for the new admin/security behaviour. Capabilities:
 #   admin · manage_users · upload · approve · view · client_scoped · read_only
+#   admin · manage_users · upload · approve · view · client_scoped · read_only · benchmark_action
+# Sprint 17 adds `benchmark_action`: flag/send a benchmark gap downstream to Renewal / Sandbox.
+# Granted to the acting broker roles; NOT to Client HR Viewer or Read-only Tester.
 ROLE_DEFS: dict[str, dict] = {
     "platform_admin": {"base": Role.ADMIN,    "label": "Platform Admin",
-                       "caps": {"admin", "manage_users", "upload", "approve", "view"}},
+                       "caps": {"admin", "manage_users", "upload", "approve", "view", "benchmark_action"}},
     "broker_admin":   {"base": Role.ADMIN,    "label": "Broker Admin",
-                       "caps": {"admin", "manage_users", "upload", "approve", "view"}},
+                       "caps": {"admin", "manage_users", "upload", "approve", "view", "benchmark_action"}},
     "eb_head":        {"base": Role.REVIEWER, "label": "EB Head",
-                       "caps": {"upload", "approve", "view"}},
+                       "caps": {"upload", "approve", "view", "benchmark_action"}},
     "consultant_rm":  {"base": Role.ANALYST,  "label": "Consultant / RM",
-                       "caps": {"upload", "view"}},
+                       "caps": {"upload", "view", "benchmark_action"}},
     "analyst":        {"base": Role.ANALYST,  "label": "Analyst",
-                       "caps": {"view"}},
+                       "caps": {"view", "benchmark_action"}},
     "client_hr_viewer": {"base": Role.ANALYST, "label": "Client HR Viewer",
                        "caps": {"view", "client_scoped"}},
     "read_only_tester": {"base": Role.ANALYST, "label": "Read-only Tester",

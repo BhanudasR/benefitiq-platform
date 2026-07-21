@@ -35,6 +35,19 @@ def require_capability(cap: str):
     return _dep
 
 
+def require_write_capability(cap: str):
+    """Sprint 17 write guard for mutating action endpoints. UNLIKE require_capability, a
+    legacy token WITHOUT a capabilities claim is DENIED — new write endpoints must never be
+    silently open to pre-RBAC dev/pilot tokens. Only real logged-in users whose granular role
+    grants `cap` may write."""
+    def _dep(principal: dict = Depends(current_principal)) -> dict:
+        caps = principal.get("capabilities")
+        if not caps or cap not in caps:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, f"capability '{cap}' required")
+        return principal
+    return _dep
+
+
 def require_admin(principal: dict = Depends(current_principal)) -> dict:
     """Admin routes: real users need the manage_users capability; legacy tokens fall back to
     the base ADMIN role so existing dev/admin tokens still work."""

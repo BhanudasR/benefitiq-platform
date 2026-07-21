@@ -79,6 +79,23 @@ export const api = {
   benchmarking(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/benchmarking/${name}${qs(params)}`);
   },
+  // Sprint 17 — benchmark gap -> Renewal / Savings Sandbox linkage (one-way, governed).
+  // Writes require the benchmark_action capability (enforced server-side); the UI mirrors it.
+  benchmarkActions: {
+    flagGap(featureId: string, params: Record<string, any>, selected_action: string): Promise<any> {
+      return req(`/benchmarking/gaps/${featureId}/actions${qs(params)}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selected_action }),
+      });
+    },
+    list(params: Record<string, any> = {}): Promise<any> { return req(`/benchmarking/actions${qs(params)}`); },
+    get(id: string): Promise<any> { return req(`/benchmarking/actions/${id}`); },
+    sendToSandbox(id: string): Promise<any> { return req(`/benchmarking/actions/${id}/send-to-sandbox`, { method: "POST" }); },
+    sandboxPreview(id: string): Promise<any> { return req(`/benchmarking/actions/${id}/sandbox-preview`); },
+    patch(id: string, body: Record<string, any>): Promise<any> {
+      return req(`/benchmarking/actions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    },
+  },
   // real-user login (Sprint 14) — email + password against the admin-managed user store
   async loginUser(email: string, password: string): Promise<any> {
     const r = await req("/auth/login", {
