@@ -8,6 +8,7 @@ import {
   SectionHeader, Card, DecisionSummary, CaveatBanner, Skeleton, EmptyState, ErrorState,
 } from "../components/ui/primitives";
 import { EvidenceDrawer } from "../components/ui/sandbox";
+import { Donut, BarH, SERIES } from "../components/ui/charts";
 
 /** The six benchmark features that map to a governed Savings Sandbox lever (Sprint 17).
  *  Every other feature is discussion-only — the UI never invents a lever. Mirrors the
@@ -151,8 +152,8 @@ function BenchmarkFrame({ title, subtitle, q, evidenceTitle, children }:
   );
 }
 
-function ComparisonTable({ rows, testid, actions }:
-  { rows: any[]; testid: string; actions?: (row: any) => React.ReactNode }) {
+function ComparisonTable({ rows, testid, actions, compareBars }:
+  { rows: any[]; testid: string; actions?: (row: any) => React.ReactNode; compareBars?: boolean }) {
   return (
     <div className="overflow-x-auto" data-testid={testid}>
       <table className="w-full text-sm">
@@ -170,6 +171,13 @@ function ComparisonTable({ rows, testid, actions }:
                 <td className="py-2 pr-4"><ClassBadge c={f.classification} /></td>
                 <td className="py-2 pr-4 text-xs text-muted">{f.not_comparable_reason || f.discussion_point}</td>
               </tr>
+              {compareBars && typeof f.client_value === "number" && typeof f.benchmark_value === "number" && (
+                <tr className="border-b border-line/60"><td colSpan={5} className="pb-3 pr-4">
+                  <div data-testid="bm-compare-bar" className="max-w-md">
+                    <BarH data={[{ label: "Client", value: f.client_value, color: "#2563EB" },
+                                 { label: "Peer benchmark", value: f.benchmark_value, color: "#94A3B8" }]} format={(x) => fmtValue(x)} />
+                  </div></td></tr>
+              )}
               {actions && (
                 <tr className="border-b border-line/60"><td colSpan={5} className="pb-3 pr-4">{actions(f)}</td></tr>
               )}
@@ -209,6 +217,11 @@ export function BenchmarkOverview() {
                   <span key={k} className={`text-xs px-2 py-1 rounded-lg border ${CLASS_STYLE[k]}`}>{k}: {fmtNumber(counts[k] || 0)}</span>
                 ))}
               </div>
+              <div className="mt-4" data-testid="bm-class-donut">
+                <Donut data={["Same as Benchmark", "Above Benchmark", "Below Benchmark", "Different from Benchmark", "Not Available / Not Comparable"]
+                  .map((k, i) => ({ label: k, value: counts[k] || 0, color: SERIES[i % SERIES.length] }))}
+                  centerValue={fmtNumber(d.features_total)} centerLabel="features" />
+              </div>
             </Card>
             <Card className="p-4">
               <div className="text-sm font-medium mb-1">Peer group</div>
@@ -234,7 +247,7 @@ export function BenchmarkFeatures() {
           <LinkageNote />
           <Card className="p-4">
             <div className="text-sm font-medium mb-2">Benefit design features ({fmtNumber((d.features || []).length)})</div>
-            <ComparisonTable rows={d.features || []} testid="bm-features-table"
+            <ComparisonTable rows={d.features || []} testid="bm-features-table" compareBars
               actions={(f) => <GapActionControls item={f} clientId={clientId} />} />
           </Card>
         </>

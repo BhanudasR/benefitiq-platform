@@ -40,9 +40,14 @@ describe("Claims Drivers (governed, API-driven — Option A)", () => {
     await waitFor(() => expect(screen.getByTestId("cd-relation")).toBeInTheDocument());
     expect(screen.getByTestId("cd-hospital")).toBeInTheDocument();
     expect(screen.getByTestId("cd-ailment")).toBeInTheDocument();
-    expect(screen.getByText("Self")).toBeInTheDocument();
-    expect(screen.getByText("Apollo")).toBeInTheDocument();
-    expect(screen.getByText("Cardiac")).toBeInTheDocument();
+    // Sprint 20 retrofit: driver visuals present alongside the drill tables
+    expect(screen.getByTestId("cd-relation-donut")).toBeInTheDocument();
+    expect(screen.getByTestId("cd-ailment-quadrant")).toBeInTheDocument();
+    expect(screen.getByTestId("cd-hospital-bar")).toBeInTheDocument();
+    // these labels now appear in BOTH the chart and the table (governed API values)
+    expect(screen.getAllByText("Self").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Apollo").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Cardiac").length).toBeGreaterThan(0);
     // large-claim effect share rendered as a percent from the API fraction
     expect(screen.getByTestId("cd-large-count")).toHaveTextContent("2");
   });

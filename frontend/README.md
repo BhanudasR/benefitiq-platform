@@ -106,6 +106,23 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 20 — Demo visual parity wave 2: Employee & Family + Renewal / Benchmarking chart retrofit
+Frontend-only, reusing the Sprint 19 governed SVG chart kit (no backend, no migration, no new dependency).
+- **Employee & Family** (`src/pages/EmployeeFamily.tsx`) moves Placeholder → chart-led dashboard, wired to the
+  existing `/metrics/relation` API: KPI band (relationships, top consumer, top share, parent-claim share),
+  incurred-by-relationship BarH, relationship-share Donut, drill table, FourQuestions, evidence drawer, No-Data.
+  `Unknown`-relationship claims are surfaced as a caveat (never merged); absent parent-share renders "Not available".
+- **Renewal Intelligence** Overview retrofit: governed ICR **gauge** + ICR **trend sparkline** (values from
+  `/metrics/icr` + `/metrics/trends`) added additively; existing KPIs, adjusted-ICR panel, large-claim summary,
+  evidence and decision text preserved. Claims Drivers retrofit: relation **donut**, ailment frequency×severity
+  **quadrant**, top-hospital **bar** added above the existing drill tables. No sub-tab count change (still 6).
+- **Benefits & Benchmarking** light retrofit: classification-counts **donut** on Overview (from API
+  `classification_counts`) and per-feature **client-vs-peer bars** on Benefit Design Features (same-unit, numeric
+  rows only). Benchmarking stays benefit-design + policy-T&C only — no claims/ICR/utilization; Not-Comparable and
+  evidence states preserved. No sub-tab count change (still 7).
+- Guardrail unchanged: all chart geometry stays in `components/ui/charts/`; pages remain KPI/business-math free and
+  pass only governed API values. Nav structure intact (20 / 7-6-4-7; Settings outside).
+
 ## Sprint 19 — Demo visual parity: chart kit + Executive Summary + Claims / Ailment / Hospital
 A reusable **governed SVG chart kit** (`src/components/ui/charts/`) — `KpiStat, Donut, BarH, BarV,
 StackedBar, Gauge, Sparkline, Quadrant, Heatmap` + an evidence-aware `ChartFrame` (title, DQ badge,

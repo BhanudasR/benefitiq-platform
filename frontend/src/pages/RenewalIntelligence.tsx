@@ -7,6 +7,7 @@ import {
   RestrictedBanner, Card, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, MiniTrend } from "../components/ui/sandbox";
+import { ChartFrame, Gauge, Sparkline } from "../components/ui/charts";
 
 const ADJUSTED_LABEL = "Adjusted ICR / Defendable ICR view based on one-off claim review assumptions.";
 
@@ -54,6 +55,26 @@ export function RenewalIntelligence() {
           onEvidence={() => setEv({ title: "ICR evidence", data: icr.data })} />
         <KpiCard label="Paid ICR" value={fmtPercent(iv.paid_icr)} sub="Paid claims over premium" />
         <KpiCard label="Outstanding ICR" value={fmtPercent(iv.outstanding_icr)} sub="Outstanding over premium" />
+      </div>
+
+      {/* Sprint 20 chart retrofit — governed ICR gauge + trend (values from the metric APIs) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ChartFrame title="Renewal health — Operational ICR" subtitle="Operational ICR unchanged; scale 0–200%"
+          status={status} caveats={icr.data.caveats} evidence={icr.data} evidenceTitle="ICR evidence" testid="renewal-icr-gauge"
+          empty={typeof iv.operational_icr !== "number"} emptyMessage="Operational ICR not available yet.">
+          <Gauge value={iv.operational_icr} min={0} max={200} valueText={fmtPercent(iv.operational_icr)}
+            label="Operational ICR" bands={[{ upTo: 100, color: "#16A34A" }, { upTo: 120, color: "#D97706" }]} />
+        </ChartFrame>
+        <ChartFrame title="Operational ICR trend" subtitle="Per policy year (governed multi-year series)"
+          status={trends.data?.data_quality_status} caveats={trends.data?.caveats} evidence={trends.data} evidenceTitle="Trend evidence" testid="renewal-icr-trend"
+          empty={series.filter((s: any) => typeof s.operational_icr === "number").length < 2} emptyMessage="At least two policy years are needed for a trend.">
+          <div className="flex items-center gap-6">
+            <Sparkline values={series.map((s: any) => s.operational_icr).filter((x: any) => typeof x === "number")} width={260} height={56} />
+            <div className="text-xs text-muted">{series.map((s: any) => (
+              <div key={s.policy_year} className="flex gap-2"><span className="text-ink tabular-nums">{s.policy_year}</span>
+                <span>{fmtPercent(s.operational_icr)}</span></div>))}</div>
+          </div>
+        </ChartFrame>
       </div>
 
       {series.length > 0 && (

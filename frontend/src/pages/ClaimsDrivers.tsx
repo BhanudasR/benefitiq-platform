@@ -7,6 +7,7 @@ import {
   RestrictedBanner, Card, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer, MiniTrend } from "../components/ui/sandbox";
+import { ChartFrame, Donut, BarH, Quadrant, SERIES } from "../components/ui/charts";
 
 /** Renewal › Claims Drivers — governed demo-parity view of what is driving renewal
  *  pressure: frequency vs severity, paid-vs-outstanding movement, large-claim effect,
@@ -132,6 +133,26 @@ export function ClaimsDrivers() {
           ]} />
         )}
       </Card>
+
+      {/* Sprint 20 chart retrofit — governed driver visuals (values from the metric APIs) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartFrame title="Relation mix" subtitle="Incurred share by member relationship" status={relation.data?.data_quality_status}
+          caveats={relation.data?.caveats} evidence={relation.data} evidenceTitle="Relation evidence" testid="cd-relation-donut"
+          empty={(rel?.groups || []).filter((g: any) => g.key !== "Unknown").length === 0} emptyMessage="Relation split not available in scope.">
+          <Donut data={(rel?.groups || []).filter((g: any) => g.key !== "Unknown").slice(0, 8).map((g: any, i: number) => ({ label: String(g.key), value: g.incurred, color: SERIES[i % SERIES.length] }))} />
+        </ChartFrame>
+        <ChartFrame title="Ailment frequency × severity" subtitle="x = claim count · y = average claim size" status={ailment.data?.data_quality_status}
+          caveats={ailment.data?.caveats} evidence={ailment.data} evidenceTitle="Ailment evidence" testid="cd-ailment-quadrant"
+          empty={(ail?.top_ailments || []).length === 0} emptyMessage="Ailment drivers not available in scope.">
+          <Quadrant points={(ail?.top_ailments || []).slice(0, 10).map((t: any) => ({ label: String(t.key), x: t.count, y: t.average_claim_size }))}
+            xLabel="Frequency (count)" yLabel="Severity (avg)" format={(x) => fmtNumber(x)} />
+        </ChartFrame>
+        <ChartFrame title="Top hospitals" subtitle="Incurred concentration by provider" status={hospital.data?.data_quality_status}
+          caveats={hospital.data?.caveats} evidence={hospital.data} evidenceTitle="Hospital evidence" testid="cd-hospital-bar"
+          empty={(hosp?.top_hospitals || []).length === 0} emptyMessage="Hospital data not available in scope.">
+          <BarH data={(hosp?.top_hospitals || []).slice(0, 6).map((t: any) => ({ label: String(t.key), value: t.incurred }))} format={(x) => fmtCurrency(x)} />
+        </ChartFrame>
+      </div>
 
       {/* Relation-wise impact */}
       <DimensionSection title="Relation-wise impact" subtitle="Who is driving the spend — self, spouse, children, parents"

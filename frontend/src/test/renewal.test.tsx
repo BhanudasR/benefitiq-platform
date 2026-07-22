@@ -33,6 +33,8 @@ describe("Renewal Intelligence (API-driven)", () => {
     expect(screen.getAllByText("73.64%").length).toBeGreaterThan(1);
     expect(screen.getByTestId("op-icr")).toHaveTextContent("73.64%");
     expect(screen.getByTestId("adjusted-label")).toHaveTextContent(/Defendable ICR view/i);
+    // Sprint 20 retrofit: governed ICR gauge is rendered from the same API value
+    expect(screen.getByTestId("renewal-icr-gauge")).toHaveTextContent("73.64%");
   });
 
   it("Restricted → advisory-blocked; Conditional → caveats", async () => {

@@ -54,6 +54,8 @@ describe("Benefit Benchmarking UI (single-sourced from /benchmarking/*)", () => 
     expect(screen.getByTestId("bm-counts")).toHaveTextContent("Same as Benchmark: 1");
     expect(screen.getByTestId("bm-counts")).toHaveTextContent("Not Available / Not Comparable: 20");
     expect(screen.getByTestId("bm-peer-summary")).toHaveTextContent(/internal_broker_portfolio/);
+    // Sprint 20 retrofit: classification-counts donut is rendered from the API counts
+    expect(screen.getByTestId("bm-class-donut")).toBeInTheDocument();
   });
 
   it("Features renders client value, benchmark value, classification and NA reason", async () => {
