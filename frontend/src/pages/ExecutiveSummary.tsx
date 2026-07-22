@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { fmtCurrency, fmtNumber, fmtPercent } from "../lib/format";
 import {
   SectionHeader, Card, DecisionSummary, DataQualityBadge,
-  CaveatBanner, RestrictedBanner, Skeleton, EmptyState, ErrorState,
+  CaveatBanner, RestrictedBanner, Skeleton, EmptyState, ErrorState, FourQuestions,
 } from "../components/ui/primitives";
 import { EvidenceDrawer } from "../components/ui/sandbox";
 import { ChartFrame, KpiStat, Gauge, Donut, BarH, Sparkline, SERIES } from "../components/ui/charts";
@@ -126,6 +126,13 @@ export function ExecutiveSummary() {
         <Widget label="Wellness posture" q={well}
           value={well.data ? String(well.data.posture ?? well.data.summary ?? "—") : "—"} />
       </div>
+
+      {/* Sprint 23 — storytelling consistency: the four-question decision block on the landing screen */}
+      <FourQuestions
+        soWhat={`Portfolio is ${status} — operational ICR ${fmtPercent(iv.operational_icr)} on ${fmtNumber(clv.claim_count)} claims across ${fmtNumber(pv.lives_covered)} lives.`}
+        why="Every figure is a governed API value — ICR, trend, cost drivers and claim mix come from the metric APIs; the cross-module widgets read the benchmark/placement/wellness/renewal engines. No browser math."
+        next="Use the ICR gauge and cost-driver bar to frame the renewal ask; open the module tabs (or a client's 360) for the full governed detail."
+        trust={`Governed on ${status} data; caveats and Restricted state are shown above and formulas open in evidence. Missing module data reads as a pending/― state, never fabricated.`} />
 
       <EvidenceDrawer open={ev} onClose={() => setEv(false)} title="ICR evidence" evidence={ev ? ic : null} />
     </div>

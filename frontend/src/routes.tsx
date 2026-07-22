@@ -13,6 +13,8 @@ import { SIUtilization } from "./pages/SIUtilization";
 import { Settlement } from "./pages/Settlement";
 import { Maternity } from "./pages/Maternity";
 import { Rejection } from "./pages/Rejection";
+import { BrokerPortfolio } from "./pages/BrokerPortfolio";
+import { ClientPortfolio } from "./pages/ClientPortfolio";
 import { RenewalShell } from "./pages/RenewalShell";
 import { RenewalIntelligence } from "./pages/RenewalIntelligence";
 import { ClaimsDrivers } from "./pages/ClaimsDrivers";
@@ -58,6 +60,8 @@ const WIRED: Record<string, React.ReactNode> = {
   "/settlement": <Settlement />,
   "/maternity": <Maternity />,
   "/rejection": <Rejection />,
+  "/broker-portfolio": <BrokerPortfolio />,
+  "/client-portfolio": <ClientPortfolio />,
 };
 
 // parents render nested sub-routes, not a flat page

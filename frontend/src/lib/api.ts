@@ -84,6 +84,11 @@ export const api = {
   placement(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/placement/${name}${qs(params)}`);
   },
+  // governed read-only Portfolio Command Center (Sprint 23); broker + client-360 rollups
+  // composed from the existing engines — no frontend math, single-source, reconciling
+  portfolio(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/portfolio/${name}${qs(params)}`);
+  },
   // Sprint 17 — benchmark gap -> Renewal / Savings Sandbox linkage (one-way, governed).
   // Writes require the benchmark_action capability (enforced server-side); the UI mirrors it.
   benchmarkActions: {

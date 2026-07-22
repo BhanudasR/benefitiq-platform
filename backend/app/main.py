@@ -5,7 +5,7 @@ from .core.config import settings
 from .api import (routes_health, routes_auth, routes_upload, routes_onboarding,
                       routes_batches, routes_metrics, routes_simulation,
                       routes_terms, routes_recommendations, routes_wellness,
-                      routes_admin, routes_benchmarking, routes_placement)
+                      routes_admin, routes_benchmarking, routes_placement, routes_portfolio)
 
 
 @asynccontextmanager
@@ -36,6 +36,7 @@ app.include_router(routes_wellness.router)
 app.include_router(routes_admin.router)
 app.include_router(routes_benchmarking.router)
 app.include_router(routes_placement.router)
+app.include_router(routes_portfolio.router)
 
 
 @app.get("/")

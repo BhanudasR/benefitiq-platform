@@ -106,6 +106,27 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 23 — Broker + Client Portfolio (CXO command center) + Exec FourQuestions
+Two new governed backend composition endpoints (**no migration**) + two premium landing dashboards + a
+small storytelling fix.
+- **`/portfolio/broker-overview`** (`BrokerPortfolio.tsx`): book command center — KPI band (clients, lives,
+  premium, portfolio ICR, claims), renewals-due **BarV** (overdue/30/60/90/later from `policy_end_date`),
+  risk-distribution **Donut** (governed RecommendationConfig ICR bands), readiness **Donut**, top-clients grid
+  (risk badge, ICR, lives, premium, renewal countdown, DQ → deep-link to the client), broker next-best-actions,
+  evidence drawer. Client-scoped (a Client HR Viewer's book auto-scopes to their client).
+- **`/portfolio/client-overview`** (`ClientPortfolio.tsx`): client-360 control tower — KPI band (lives, premium,
+  ICR, next renewal), health cards (DQ / Benchmarking / Placement / Wellness — governed status or "Not available"),
+  next-best-action, quick-links to the module dashboards, FourQuestions, evidence. **Reconciles with the module
+  tabs** (same single-source engines; e.g. client ICR == `/metrics/icr`). Reads `?client_id`; offers a governed
+  client picker when absent.
+- Both compose the existing governed engines (metrics/benchmarking/placement/wellness/recommendation) — no new
+  decision logic, no fabricated rollups; lives are **client-scoped** (no cross-client double-count). Registered for
+  `/portfolio/evidence/{kind}`.
+- **Executive Summary:** added the FourQuestions storytelling block (additive) so the landing screen matches every
+  other analytics tab; existing governed widgets untouched.
+- Guardrails held: pages math-free (chart geometry in `components/ui/charts/`), governed API values only, evidence/
+  caveats/confidence, tenant isolation + client scoping, missing fields "Not available", nav 20 / 7-6-4-7 preserved.
+
 ## Sprint 22 — Settlement + Maternity + Rejection (governed claim analytics + dashboards)
 Three new governed metric endpoints (read-only over canonical `claim` [+ `claim_bill_component`,
 confirmed `benefit_term`], **no migration**) + three chart-led dashboards.
