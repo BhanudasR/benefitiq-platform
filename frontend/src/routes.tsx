@@ -8,6 +8,8 @@ import { Claims } from "./pages/Claims";
 import { Ailment } from "./pages/Ailment";
 import { Hospital } from "./pages/Hospital";
 import { EmployeeFamily } from "./pages/EmployeeFamily";
+import { Demographics } from "./pages/Demographics";
+import { SIUtilization } from "./pages/SIUtilization";
 import { RenewalShell } from "./pages/RenewalShell";
 import { RenewalIntelligence } from "./pages/RenewalIntelligence";
 import { ClaimsDrivers } from "./pages/ClaimsDrivers";
@@ -48,6 +50,8 @@ const WIRED: Record<string, React.ReactNode> = {
   "/ailment": <Ailment />,
   "/hospital": <Hospital />,
   "/employee-family": <EmployeeFamily />,
+  "/demographics": <Demographics />,
+  "/si-utilization": <SIUtilization />,
 };
 
 // parents render nested sub-routes, not a flat page

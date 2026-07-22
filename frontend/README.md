@@ -106,6 +106,21 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 21 — Demographics + SI Utilization (governed endpoints + premium dashboards)
+Two new governed backend metric endpoints (read-only aggregation over canonical member/policy/claim,
+**no migration**) + two chart-led dashboards on the Sprint 19 kit.
+- **`/metrics/demographics`** (`Demographics.tsx`): age-band **BarV**, gender **Donut** (or "Not available"),
+  relationship **Donut**, KPI band (members, senior share age≥60, average age, dependent ratio). Uses
+  `member.age` directly — no DOB inference; missing age/gender are caveated and excluded, never fabricated.
+- **`/metrics/si-utilization`** (`SIUtilization.tsx`): SI-band **BarV**, average-utilization **Gauge**,
+  utilization-band **BarH**, under/over-insured **signal** cards, family-floater "Available / Not available".
+  Utilization = member incurred ÷ member SI is **backend-computed**; the page passes the API fraction to the
+  gauge (geometry in the chart layer). **Aggregate only — no member-level rows / no PII.** Missing SI and
+  claims not linked via `member_reference_key` are caveated; under/over-insured are utilization-vs-SI *signals*,
+  not actuarial verdicts.
+- Both wired in `routes.tsx` `WIRED` (`/demographics`, `/si-utilization`), evidence via `/metrics/evidence/{metric}`,
+  No-Data + caveats + confidence preserved. Nav unchanged (20 / 7-6-4-7; Settings outside); pages math-free.
+
 ## Sprint 20 — Demo visual parity wave 2: Employee & Family + Renewal / Benchmarking chart retrofit
 Frontend-only, reusing the Sprint 19 governed SVG chart kit (no backend, no migration, no new dependency).
 - **Employee & Family** (`src/pages/EmployeeFamily.tsx`) moves Placeholder → chart-led dashboard, wired to the

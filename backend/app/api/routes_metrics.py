@@ -12,6 +12,7 @@ from ..db.session import get_db
 from ..services.metrics.base import MetricContext
 from ..services.metrics import claims as m_claims, icr as m_icr, portfolio as m_portfolio
 from ..services.metrics import trends as m_trends, large_claims as m_large, dimensions as m_dim
+from ..services.metrics import demographics as m_demo, si_utilization as m_si
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
 
@@ -39,6 +40,7 @@ _DISPATCH = {
     "icr": m_icr.icr_metrics, "trends": m_trends.trend_metrics,
     "relation": m_dim.relation_metrics, "hospital": m_dim.hospital_metrics,
     "ailment": m_dim.ailment_metrics, "large-claims": m_large.large_claim_metrics,
+    "demographics": m_demo.demographics_metrics, "si-utilization": m_si.si_utilization_metrics,
 }
 
 
@@ -95,6 +97,18 @@ def ailment(filters: dict = Depends(_common), db: Session = Depends(get_db),
 def large_claims(filters: dict = Depends(_common), db: Session = Depends(get_db),
                  principal: dict = Depends(require_role(Role.ANALYST))):
     return _run("large-claims", principal, db, filters)
+
+
+@router.get("/demographics")
+def demographics(filters: dict = Depends(_common), db: Session = Depends(get_db),
+                 principal: dict = Depends(require_role(Role.ANALYST))):
+    return _run("demographics", principal, db, filters)
+
+
+@router.get("/si-utilization")
+def si_utilization(filters: dict = Depends(_common), db: Session = Depends(get_db),
+                   principal: dict = Depends(require_role(Role.ANALYST))):
+    return _run("si-utilization", principal, db, filters)
 
 
 @router.get("/evidence/{metric}")
