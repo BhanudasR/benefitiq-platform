@@ -13,6 +13,7 @@ from ..services.metrics.base import MetricContext
 from ..services.metrics import claims as m_claims, icr as m_icr, portfolio as m_portfolio
 from ..services.metrics import trends as m_trends, large_claims as m_large, dimensions as m_dim
 from ..services.metrics import demographics as m_demo, si_utilization as m_si
+from ..services.metrics import settlement as m_settle, maternity as m_mat, rejection as m_rej
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
 
@@ -41,6 +42,8 @@ _DISPATCH = {
     "relation": m_dim.relation_metrics, "hospital": m_dim.hospital_metrics,
     "ailment": m_dim.ailment_metrics, "large-claims": m_large.large_claim_metrics,
     "demographics": m_demo.demographics_metrics, "si-utilization": m_si.si_utilization_metrics,
+    "settlement": m_settle.settlement_metrics, "maternity": m_mat.maternity_metrics,
+    "rejection": m_rej.rejection_metrics,
 }
 
 
@@ -109,6 +112,24 @@ def demographics(filters: dict = Depends(_common), db: Session = Depends(get_db)
 def si_utilization(filters: dict = Depends(_common), db: Session = Depends(get_db),
                    principal: dict = Depends(require_role(Role.ANALYST))):
     return _run("si-utilization", principal, db, filters)
+
+
+@router.get("/settlement")
+def settlement(filters: dict = Depends(_common), db: Session = Depends(get_db),
+               principal: dict = Depends(require_role(Role.ANALYST))):
+    return _run("settlement", principal, db, filters)
+
+
+@router.get("/maternity")
+def maternity(filters: dict = Depends(_common), db: Session = Depends(get_db),
+              principal: dict = Depends(require_role(Role.ANALYST))):
+    return _run("maternity", principal, db, filters)
+
+
+@router.get("/rejection")
+def rejection(filters: dict = Depends(_common), db: Session = Depends(get_db),
+              principal: dict = Depends(require_role(Role.ANALYST))):
+    return _run("rejection", principal, db, filters)
 
 
 @router.get("/evidence/{metric}")

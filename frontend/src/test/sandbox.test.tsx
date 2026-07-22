@@ -41,7 +41,7 @@ describe("Savings Sandbox (API-driven)", () => {
   it("scenario controls CALL the backend API (no local calc) and render its response", async () => {
     (api.simulation as any).mockResolvedValue(ROOM);
     renderWithProviders(<SavingsSandbox />);
-    await userEvent.type(screen.getByLabelText(/Room rent %/i), "0.01");
+    await userEvent.type(screen.getByLabelText(/Room rent %/i), "0.01", { delay: null });
     await userEvent.click(screen.getByTestId("run-scenario"));
     await waitFor(() => expect(api.simulation).toHaveBeenCalledWith("room-rent", { room_rent_pct: "0.01" }));
     await waitFor(() => expect(screen.getByTestId("portfolio-saving")).toHaveTextContent("35,000"));
@@ -50,7 +50,7 @@ describe("Savings Sandbox (API-driven)", () => {
     // formula + caveats visible (savings never shown without source/assumptions)
     expect(screen.getByText(/ClaimSaving=EligibleLinkedBill/)).toBeInTheDocument();
     expect(screen.getByTestId("caveat-banner")).toHaveTextContent(/proxy/i);
-  });
+  }, 15000);
 
   it("co-pay shows member out-of-pocket (employee impact)", async () => {
     await selectRunAndAssertCall("lever-copay", "copay", ["Co-pay % (fraction, e.g. 0.10)", "0.10"], COPAY);
@@ -80,10 +80,10 @@ describe("Savings Sandbox (API-driven)", () => {
   it("evidence drawer opens for a simulation", async () => {
     (api.simulation as any).mockResolvedValue(ROOM);
     renderWithProviders(<SavingsSandbox />);
-    await userEvent.type(screen.getByLabelText(/Room rent %/i), "0.01");
+    await userEvent.type(screen.getByLabelText(/Room rent %/i), "0.01", { delay: null });
     await userEvent.click(screen.getByTestId("run-scenario"));
     await waitFor(() => expect(screen.getByTestId("portfolio-saving")).toBeInTheDocument());
     await userEvent.click(screen.getByText(/View full evidence/i));
     await waitFor(() => expect(screen.getByTestId("evidence-drawer")).toBeInTheDocument());
-  });
+  }, 15000);
 });

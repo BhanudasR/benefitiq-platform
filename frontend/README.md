@@ -106,6 +106,24 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 22 — Settlement + Maternity + Rejection (governed claim analytics + dashboards)
+Three new governed metric endpoints (read-only over canonical `claim` [+ `claim_bill_component`,
+confirmed `benefit_term`], **no migration**) + three chart-led dashboards.
+- **`/metrics/settlement`** (`Settlement.tsx`): status-mix **Donut**, paid-vs-outstanding **StackedBar**,
+  cashless-vs-reimbursement **Donut**, deduction (from bill breakup where available). Reimbursement **TAT
+  is a governed "Not available"** card — the canonical claim has no receipt/payment date fields; TAT is
+  never computed from admission/discharge or substituted.
+- **`/metrics/maternity`** (`Maternity.tsx`): conservative governed identification (keyword list + ICD-10
+  chapter-O on `diagnosis_code_l1`; non-matching/undiagnosed excluded, never inferred); count/incurred/avg,
+  normal-vs-C-section **Donut** only where distinguishable (else "Not available"), maternity-limit + newborn-
+  cover from **confirmed benefit terms only** (else "Not available"), identification-rule caveat. No medical advice.
+- **`/metrics/rejection`** (`Rejection.tsx`): rejection = `claim_status='Repudiated'` only; ratio **Gauge**,
+  by-claim-type **Donut**, rejected amount. **Top reasons and wrongful-rejection render "Not available"** (no
+  reason / reprocessing field on the canonical claim) — never fabricated.
+- All three registered for `/metrics/evidence/{metric}`; evidence/caveats/confidence + No-Data + "Not
+  available" states throughout; pages math-free (chart geometry in `components/ui/charts/`); nav unchanged
+  (20 / 7-6-4-7; Settings outside).
+
 ## Sprint 21 — Demographics + SI Utilization (governed endpoints + premium dashboards)
 Two new governed backend metric endpoints (read-only aggregation over canonical member/policy/claim,
 **no migration**) + two chart-led dashboards on the Sprint 19 kit.
