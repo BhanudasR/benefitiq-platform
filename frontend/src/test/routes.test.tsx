@@ -16,7 +16,9 @@ vi.mock("../lib/api", async (orig) => {
     benchmarking: vi.fn().mockResolvedValue(noData),
     placement: vi.fn().mockResolvedValue(noData),
     portfolio: vi.fn().mockResolvedValue(noData),
-    dataQuality: vi.fn().mockResolvedValue(noData) } };
+    dataQuality: vi.fn().mockResolvedValue(noData),
+    exports: vi.fn().mockResolvedValue(noData),
+    exportsGenerate: vi.fn().mockResolvedValue(noData) } };
 });
 
 describe("all 20 top-level tab routes render", () => {

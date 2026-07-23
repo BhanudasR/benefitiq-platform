@@ -106,6 +106,26 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 25 — Governed Client Pack / Export foundation
+Read-only **export composition** over the existing governed engines (**no migration, no new dependency,
+no binary generation**) + a guided board-pack workflow + a print-ready pack view.
+- **`/exports/client-pack/sections`**: per-section export-readiness for a client (ready / caveated /
+  restricted / no-data) + an overall "OK to send?" verdict (min-band-gated).
+- **`/exports/client-pack/preview`**: the governed **pack contract** — cover + selected content sections
+  + Data Quality / Source Evidence appendix. Each section carries `{value, data_quality_status, caveats,
+  source_tables, confidence, evidence, readiness}`; pack trust is **min-band-gated** (any Restricted
+  section stamps the whole pack directional). Pure read (no audit).
+- **`/exports/client-pack/generate`** (POST): returns the same contract **and writes exactly one
+  append-only `AuditLog` EXPORT event**. On-demand, **not persisted**, no file generated.
+- **`ExportClientPack.tsx`** (the `/export` tab): guided workflow — client selector, pack-type selector
+  (Full Board / Renewal / Placement), section checklist with readiness chips, export-readiness panel +
+  DQ/Restricted warning, governed preview cards, evidence-appendix preview, "Generate board pack".
+- **`ClientPackPrint.tsx`** (`/export/print`, full-screen, no Shell chrome): boardroom-styled render of the
+  governed pack (cover + sections + evidence appendix + caveat footer) with `@media print` CSS → browser
+  **Print → PDF**. v1 is dependency-free; the PPTX slide schema is defined as a foundation for a later binder.
+- Every figure comes from a governed engine (no frontend math, guard NONE); missing → "Not available";
+  no raw member/claim rows, no PII; client_id required + client-scoped (foreign → 403). Nav 20 / 7-6-4-7 preserved.
+
 ## Sprint 24 — Source Evidence / Data Quality trust command center
 Read-only **evidence composition** over the existing governance tables (**no migration**, no DQ recomputation,
 no writes) + one premium trust dashboard wired into the existing Source Evidence tab.

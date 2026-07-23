@@ -16,6 +16,8 @@ import { Rejection } from "./pages/Rejection";
 import { BrokerPortfolio } from "./pages/BrokerPortfolio";
 import { ClientPortfolio } from "./pages/ClientPortfolio";
 import { DataQuality } from "./pages/DataQuality";
+import { ExportClientPack } from "./pages/ExportClientPack";
+import { ClientPackPrint } from "./pages/ClientPackPrint";
 import { RenewalShell } from "./pages/RenewalShell";
 import { RenewalIntelligence } from "./pages/RenewalIntelligence";
 import { ClaimsDrivers } from "./pages/ClaimsDrivers";
@@ -64,6 +66,7 @@ const WIRED: Record<string, React.ReactNode> = {
   "/broker-portfolio": <BrokerPortfolio />,
   "/client-portfolio": <ClientPortfolio />,
   "/source-evidence": <DataQuality />,
+  "/export": <ExportClientPack />,
 };
 
 // parents render nested sub-routes, not a flat page
@@ -74,6 +77,8 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/gallery" element={<Gallery />} />
+      {/* Print-ready board pack — authed, rendered full-screen (no Shell chrome) for Print → PDF */}
+      <Route path="/export/print" element={<RequireAuth><ClientPackPrint /></RequireAuth>} />
       <Route element={<RequireAuth><Shell /></RequireAuth>}>
         <Route index element={<Navigate to="/executive-summary" replace />} />
 

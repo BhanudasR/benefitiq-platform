@@ -94,6 +94,15 @@ export const api = {
   dataQuality(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/data-quality/${name}${qs(params)}`);
   },
+  // governed read-only Client Pack / Export (Sprint 25). Composes the module engines into a
+  // boardroom pack contract — no frontend math, no fabricated numbers. `generate` is a POST that
+  // returns the same contract and records one audit event server-side (no file is generated).
+  exports(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/exports/${name}${qs(params)}`);
+  },
+  exportsGenerate(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/exports/${name}${qs(params)}`, { method: "POST" });
+  },
   // Sprint 17 — benchmark gap -> Renewal / Savings Sandbox linkage (one-way, governed).
   // Writes require the benchmark_action capability (enforced server-side); the UI mirrors it.
   benchmarkActions: {

@@ -95,7 +95,7 @@ export const TABS: Tab[] = [
 
   // 5 — AI & Outputs
   { id: "ask-benefitiq", label: "Ask BenefitIQ", path: "/ask-benefitiq", group: "AI & Outputs" },
-  { id: "export", label: "PPT / Client Pack / Export", path: "/export", group: "AI & Outputs" },
+  { id: "export", label: "PPT / Client Pack / Export", path: "/export", group: "AI & Outputs", wired: true },
 
   // 6 — Data Trust & Admin (moved to END)
   { id: "data-onboarding", label: "Data Onboarding", path: "/data-onboarding", group: "Data Trust & Admin", wired: true },
