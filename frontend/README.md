@@ -106,6 +106,29 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 24 — Source Evidence / Data Quality trust command center
+Read-only **evidence composition** over the existing governance tables (**no migration**, no DQ recomputation,
+no writes) + one premium trust dashboard wired into the existing Source Evidence tab.
+- **`/data-quality/overview`**: headline readiness by **MIN-BAND-GATES** over active datasets (Restricted <
+  Conditional < Analytics Ready — a healthy policy/member dataset can never mask a Restricted claims dataset),
+  with a **records-weighted DQ score** as the secondary score (`Σ(DQ × records)/Σ(records)`), a `gating_reason`,
+  per-dataset scores, issue severity summary and mapping confidence.
+- **`/data-quality/issues`**: severity split (ERROR→critical / WARNING→warning / INFO→info), grouping by rule and
+  by field, affected records/fields, quarantined subset; each field carries the modules it impacts.
+- **`/data-quality/module-readiness`**: advisory module readiness from the centralized **`EVIDENCE_MODULE_MAP`**
+  (claims→Claims/ICR/Ailment/Hospital/Settlement/Maternity/Rejection/Large Claims; member→Demographics/Employee &
+  Family/Relation/SI Utilization; policy→Broker/Client Portfolio/Renewal/Placement; terms→Benchmarking/Sandbox/
+  Balanced; wellness→Wellness, claims fallback). Non-blocking unless the source dataset is Restricted.
+- **`/data-quality/lineage`**: file → upload_batch → dataset_version chain (content-addressed sha256, immutable).
+- **`/data-quality/evidence/{kind}`**: reconciling explainability — dataset DQ = Σ(component `weighted_points`)
+  (dq_score.py 8-component model); 404 on unknown kind.
+- **`DataQuality.tsx`** (Source Evidence tab): trust-verdict hero (**DQ Gauge** + "Can I trust this?" verdict +
+  gating reason), KPI band (weighted DQ, active datasets, critical issues, affected records, mapping confidence),
+  issue-severity **Donut** + issues-by-rule **BarH**, module-readiness grid, source-lineage timeline, impacted-
+  analytics table, recommended-fix cards, evidence drawer, FourQuestions, polished No-Data / Not-available states.
+- Guardrails held: pages math-free (chart geometry in `components/ui/charts/`), governed API values only, no DQ
+  recomputation, no writes, tenant isolation + client scoping (foreign `client_id` → 403), nav 20 / 7-6-4-7 preserved.
+
 ## Sprint 23 — Broker + Client Portfolio (CXO command center) + Exec FourQuestions
 Two new governed backend composition endpoints (**no migration**) + two premium landing dashboards + a
 small storytelling fix.

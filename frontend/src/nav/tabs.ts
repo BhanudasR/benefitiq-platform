@@ -99,5 +99,5 @@ export const TABS: Tab[] = [
 
   // 6 — Data Trust & Admin (moved to END)
   { id: "data-onboarding", label: "Data Onboarding", path: "/data-onboarding", group: "Data Trust & Admin", wired: true },
-  { id: "source-evidence", label: "Source Evidence / Data Quality", path: "/source-evidence", group: "Data Trust & Admin" },
+  { id: "source-evidence", label: "Source Evidence / Data Quality", path: "/source-evidence", group: "Data Trust & Admin", wired: true },
 ];

@@ -89,6 +89,11 @@ export const api = {
   portfolio(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/portfolio/${name}${qs(params)}`);
   },
+  // governed read-only Source Evidence / Data Quality trust layer (Sprint 24). Summarizes the
+  // governance tables into trust views — no frontend math, no DQ recomputation, values only.
+  dataQuality(name: string, params: Record<string, any> = {}): Promise<any> {
+    return req(`/data-quality/${name}${qs(params)}`);
+  },
   // Sprint 17 — benchmark gap -> Renewal / Savings Sandbox linkage (one-way, governed).
   // Writes require the benchmark_action capability (enforced server-side); the UI mirrors it.
   benchmarkActions: {
