@@ -106,6 +106,25 @@ questions (So what / Why / What next / Can I trust it) via a shared `FourQuestio
 - Tests: `renewal`, `claims-drivers`, `sandbox`, `balanced`, `recommended-strategy`, `placement-trigger`,
   plus `nav` (20 tabs), `subtabs` (6 Renewal / 4 Wellness), `routes`, and the no-frontend-math guard.
 
+## Sprint 26 — Ask BenefitIQ (governed copilot)
+A deterministic, evidence-grounded advisory copilot — **no LLM, no external calls, no new dependency,
+no migration**. Rule/keyword intent registry routes questions to the existing governed engines; the
+composer only templates answers from governed values (never invents a number).
+- **`/ask/intents`**: the catalogue of allowed governed questions (14 intents across Portfolio, Client,
+  Claims, Renewal, Benchmarking, Placement, Wellness, Trust, Export, Action) — pure read, no audit.
+- **`/ask/query`** (POST): matches the question (deterministic `matcher`), routes to the approved engine
+  (`router`), composes the governed answer contract (`composer`) — `answer_summary`, `key_points`,
+  `supporting_metrics` (scalars from the engine, no raw rows), `evidence_refs`, `source_tables`, `caveats`,
+  `confidence`, `data_quality_status`, `not_available_reason`, `recommended_next_action`. Missing data →
+  "Not available"; unmatched/blocked (medical/legal/PII/predict/ignore-DQ/external) → governed unsupported.
+  Writes **exactly one `AuditLog` ASK event** (non-persisted answer, no `answer_id` store).
+- **`AskBenefitIQ.tsx`** (the `/ask-benefitiq` tab): premium advisory copilot — guided question cards,
+  client selector, question input, answer panel with key-metric cards, caveat + confidence badges,
+  "Why this answer?" evidence drawer, and polished Not-Available / Unsupported / needs-a-client states.
+- Guardrails: no fabricated values, no answer without governed evidence, no raw member/claim rows, no PII,
+  no frontend math (guard NONE); client-scoped intents require a client (foreign `client_id` → 403); nav
+  20 / 7-6-4-7 preserved.
+
 ## Sprint 25 — Governed Client Pack / Export foundation
 Read-only **export composition** over the existing governed engines (**no migration, no new dependency,
 no binary generation**) + a guided board-pack workflow + a print-ready pack view.

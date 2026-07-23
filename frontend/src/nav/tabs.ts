@@ -94,7 +94,7 @@ export const TABS: Tab[] = [
   { id: "wellness", label: "Wellness Intelligence", path: "/wellness", group: "Strategic Advisory", subTabs: WELLNESS_SUBTABS },
 
   // 5 — AI & Outputs
-  { id: "ask-benefitiq", label: "Ask BenefitIQ", path: "/ask-benefitiq", group: "AI & Outputs" },
+  { id: "ask-benefitiq", label: "Ask BenefitIQ", path: "/ask-benefitiq", group: "AI & Outputs", wired: true },
   { id: "export", label: "PPT / Client Pack / Export", path: "/export", group: "AI & Outputs", wired: true },
 
   // 6 — Data Trust & Admin (moved to END)

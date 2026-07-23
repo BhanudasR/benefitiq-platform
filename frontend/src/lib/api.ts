@@ -103,6 +103,13 @@ export const api = {
   exportsGenerate(name: string, params: Record<string, any> = {}): Promise<any> {
     return req(`/exports/${name}${qs(params)}`, { method: "POST" });
   },
+  // governed deterministic copilot (Sprint 26). Ask routes to governed engines only — no LLM,
+  // no external calls, no fabricated numbers. `intents` lists the allowed questions; `askQuery`
+  // returns an evidence-grounded answer contract and records one audit event server-side.
+  askIntents(): Promise<any> { return req("/ask/intents"); },
+  askQuery(body: Record<string, any>): Promise<any> {
+    return req("/ask/query", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  },
   // Sprint 17 — benchmark gap -> Renewal / Savings Sandbox linkage (one-way, governed).
   // Writes require the benchmark_action capability (enforced server-side); the UI mirrors it.
   benchmarkActions: {

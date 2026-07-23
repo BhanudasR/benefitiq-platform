@@ -6,7 +6,7 @@ from .api import (routes_health, routes_auth, routes_upload, routes_onboarding,
                       routes_batches, routes_metrics, routes_simulation,
                       routes_terms, routes_recommendations, routes_wellness,
                       routes_admin, routes_benchmarking, routes_placement, routes_portfolio,
-                      routes_data_quality, routes_exports)
+                      routes_data_quality, routes_exports, routes_ask)
 
 
 @asynccontextmanager
@@ -40,6 +40,7 @@ app.include_router(routes_placement.router)
 app.include_router(routes_portfolio.router)
 app.include_router(routes_data_quality.router)
 app.include_router(routes_exports.router)
+app.include_router(routes_ask.router)
 
 
 @app.get("/")

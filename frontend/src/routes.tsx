@@ -18,6 +18,7 @@ import { ClientPortfolio } from "./pages/ClientPortfolio";
 import { DataQuality } from "./pages/DataQuality";
 import { ExportClientPack } from "./pages/ExportClientPack";
 import { ClientPackPrint } from "./pages/ClientPackPrint";
+import { AskBenefitIQ } from "./pages/AskBenefitIQ";
 import { RenewalShell } from "./pages/RenewalShell";
 import { RenewalIntelligence } from "./pages/RenewalIntelligence";
 import { ClaimsDrivers } from "./pages/ClaimsDrivers";
@@ -67,6 +68,7 @@ const WIRED: Record<string, React.ReactNode> = {
   "/client-portfolio": <ClientPortfolio />,
   "/source-evidence": <DataQuality />,
   "/export": <ExportClientPack />,
+  "/ask-benefitiq": <AskBenefitIQ />,
 };
 
 // parents render nested sub-routes, not a flat page
