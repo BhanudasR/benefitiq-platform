@@ -1,0 +1,4 @@
+# SPA history fallback — every path serves index.html so client-side routes (e.g. /ask-benefitiq,
+# /export/print) work on direct load / refresh. Honored by Render Static Sites and Netlify.
+# Vite copies files in public/ to the build root (dist/).
+/*    /index.html   200
