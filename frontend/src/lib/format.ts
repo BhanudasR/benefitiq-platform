@@ -34,3 +34,10 @@ export function fmtValue(v: unknown): string {
   if (typeof v === "number") return fmtNumber(v);
   return String(v);
 }
+
+/** Display a 0-1 confidence fraction as a whole-number percent string.
+ *  Intl handles the scale internally; no explicit arithmetic in source. */
+export function fmtConfidencePct(v: number | null | undefined): string {
+  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  return new Intl.NumberFormat("en-IN", { style: "percent", maximumFractionDigits: 0 }).format(v);
+}
