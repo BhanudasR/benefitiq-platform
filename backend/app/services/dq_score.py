@@ -14,7 +14,7 @@ Principle: a low score never blocks RAW UPLOAD; it blocks *blind* analytics and
 surfaces exactly which rows/fields to fix. This is the Data Readiness Score."""
 from __future__ import annotations
 
-from ..canonical.registry import REGISTRY, mandatory_fields
+from ..canonical.registry import REGISTRY, mandatory_fields, critical_fields
 from .profiling import is_blank, parse_number
 
 WEIGHTS = {
@@ -54,6 +54,14 @@ def compute_dq(table: str, mapped_rows: list[dict], mapping_result: dict,
     rows = mapped_rows
     total = len(rows)
     mand = mandatory_fields(table)
+    # Pilot: all mandatory=False — score completeness over CRITICAL fields present in upload
+    # (fields absent from the upload are a coverage gap, not a completeness gap)
+    if not mand:
+        # Pilot: all mandatory=False. Score completeness over ALL uploaded fields
+        # (only canonicals that appear as keys in the row dicts — not phantom F15 fields).
+        all_canon = {f["canonical"] for f in REGISTRY[table]}
+        uploaded = {k for r in rows for k in r if k in all_canon}
+        mand = sorted(uploaded)
     comps: list[dict] = []
 
     # 1. mandatory completeness -------------------------------------------------
@@ -62,7 +70,7 @@ def compute_dq(table: str, mapped_rows: list[dict], mapping_result: dict,
     f1 = _frac(filled, cells)
     comps.append(_c("mandatory_completeness", f1,
                     {"mandatory_fields": len(mand), "cells": cells, "filled": filled},
-                    _cav(f1, f"{cells - filled} mandatory cell(s) empty")))
+                    _cav(f1, f"{cells - filled} critical field cell(s) empty")))
 
     # 2. mapping confidence -----------------------------------------------------
     f2 = float(mapping_result.get("overall_confidence", 0.0)) if mapping_result else 0.0

@@ -57,15 +57,17 @@ def _validate_row(table: str, row: dict, specs: dict) -> list[dict]:
         sev = _tier_severity(tier)
 
         # ---- required (presence) ----
+        # Check CRITICAL and IMPORTANT fields that are actually present in the upload.
+        # Fields absent from the upload (not in row dict) are a coverage gap, not a row error.
         if is_blank(val):
-            if spec["mandatory"]:
-                # governed exception: outstanding claim -> paid legitimately pending
-                if is_outstanding and canon == "total_claim_paid":
+            if tier in (Tier.CRITICAL, Tier.IMPORTANT) and canon in row:
+                if is_outstanding:
+                    # Outstanding claim is in-flight; blank fields are expected
                     issues.append(_issue(idx, INFO, canon, "outstanding_paid_pending",
-                                         "Outstanding claim: paid amount pending; excluded from paid-based KPIs."))
+                                         f"Outstanding claim: '{canon}' pending; excluded from analytics."))
                 else:
                     issues.append(_issue(idx, sev, canon, "missing_mandatory",
-                                         f"Mandatory {tier.value} field '{canon}' is empty."))
+                                         f"{tier.value.title()} field '{canon}' is empty."))
             continue
 
         # ---- type / format ----

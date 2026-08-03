@@ -93,11 +93,17 @@ def suggest_mapping(headers: list[str], table: str, aliases: dict | None = None)
                 used_canonical[canonical] = (h, conf)
 
     mandatory = [f["canonical"] for f in REGISTRY[table] if f["mandatory"]]
+    # Pilot: all mandatory=False — use CRITICAL fields as the gate for coverage/review signals
+    critical = [f["canonical"] for f in REGISTRY[table] if f["tier"] == Tier.CRITICAL]
     mapped_mand = [c for c in mandatory if c in used_canonical]
     unmapped_mandatory = [c for c in mandatory if c not in used_canonical]
-    # overall confidence: mean confidence over mandatory fields (missing = 0)
+    unmapped_critical = [c for c in critical if c not in used_canonical]
+    # overall confidence: mean over mandatory fields; pilot has all mandatory=False
+    # so fall back to mean confidence over ALL mapped suggestions
     if mandatory:
         overall = round(sum(used_canonical.get(c, ("", 0.0))[1] for c in mandatory) / len(mandatory), 3)
+    elif used_canonical:
+        overall = round(sum(conf for _, conf in used_canonical.values()) / len(used_canonical), 3)
     else:
         overall = 0.0
 
@@ -107,8 +113,8 @@ def suggest_mapping(headers: list[str], table: str, aliases: dict | None = None)
         "suggestions": suggestions,
         "overall_confidence": overall,
         "mapped_mandatory": mapped_mand,
-        "unmapped_mandatory": unmapped_mandatory,
-        "needs_review": bool(unmapped_mandatory) or bool(low_conf),
+        "unmapped_mandatory": unmapped_mandatory if unmapped_mandatory else (unmapped_critical if not used_canonical else []),
+        "needs_review": bool(unmapped_mandatory) or bool(low_conf) or bool(unmapped_critical),
         "low_confidence_fields": [s["source_header"] for s in low_conf],
     }
 
@@ -125,13 +131,18 @@ def confirm_mapping(headers: list[str], table: str, field_map: dict[str, str]) -
             unknown.append(canon)
     mapped_canon = set(cleaned.values())
     mandatory = [f["canonical"] for f in REGISTRY[table] if f["mandatory"]]
-    missing = [c for c in mandatory if c not in mapped_canon]
+    # Pilot: all mandatory=False — report missing CRITICAL fields as informational
+    check = mandatory if mandatory else [f["canonical"] for f in REGISTRY[table] if f["tier"] == Tier.CRITICAL]
+    missing = [c for c in check if c not in mapped_canon]
+    # confirmed: unknown targets always block; missing fields only block when mandatory=True fields exist
+    # (pilot: all mandatory=False -> confirmed as long as no unknown targets)
+    confirmed = (not unknown) if not mandatory else (not missing and not unknown)
     return {
         "table": table,
         "field_map": cleaned,
         "unknown_targets": unknown,
         "missing_mandatory": missing,
-        "confirmed": not missing and not unknown,
+        "confirmed": confirmed,
         "signature": layout_signature(headers),
     }
 
