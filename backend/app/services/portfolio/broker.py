@@ -53,6 +53,55 @@ def _bucket_days(days):
     return "later"
 
 
+def _urgency_band(days):
+    if days is None:
+        return "low"
+    if days <= 30:
+        return "high"
+    if days <= 60:
+        return "medium"
+    return "low"
+
+
+def _risk_impact(band):
+    if band in ("redesign", "place"):
+        return "high"
+    if band == "negotiate":
+        return "medium"
+    return "low"
+
+
+def _priority_score(client):
+    risk_weight = {"place": 4, "redesign": 3, "negotiate": 2, "defend": 1, "unknown": 0}
+    days = client.get("next_renewal_days")
+    if days is None:
+        urgency = 0
+    elif days <= 0:
+        urgency = 4
+    elif days <= 30:
+        urgency = 3
+    elif days <= 60:
+        urgency = 2
+    elif days <= 90:
+        urgency = 1
+    else:
+        urgency = 0
+    return (risk_weight.get(client.get("risk_band"), 0), urgency, client.get("premium") or 0)
+
+
+def _action_bucket(client):
+    days = client.get("next_renewal_days")
+    high_risk = client.get("risk_band") in ("redesign", "place")
+    medium_risk = client.get("risk_band") == "negotiate"
+    if high_risk and days is not None and days <= 30:
+        return "immediate_attention"
+    if high_risk and days is not None and days <= 60:
+        return "plan_strategy_call"
+    if (high_risk or medium_risk) and days is not None and days <= 90:
+        return "monitor_closely"
+    return "track_prepare"
+
+
 def broker_overview(pctx: PortfolioContext) -> dict:
     cfg = get_reco_config(pctx.db, pctx.tenant)
     today = datetime.date.today()
@@ -99,13 +148,46 @@ def broker_overview(pctx: PortfolioContext) -> dict:
         clients.append({
             "client_id": cid, "client_name": _client_name(pctx.db, pctx.tenant, cid),
             "lives": lives, "premium": round(pf.get("total_premium") or 0.0, 2),
-            "icr": icr_val, "data_quality_status": dq, "policy_count": pf.get("policy_version_count") or 0,
-            "next_renewal_days": next_days, "risk_band": band,
+            "claims_incurred": round(iv.get("incurred") or 0.0, 2),
+            "icr": icr_val, "projected_icr": None, "adjusted_icr": None,
+            "data_quality_status": dq, "policy_count": pf.get("policy_version_count") or 0,
+            "next_renewal_days": next_days,
+            "renewal_due_bucket": _bucket_days(next_days) if next_days is not None else "missing",
+            "risk_band": band, "risk_impact": _risk_impact(band), "urgency_band": _urgency_band(next_days),
+            "industry": None, "risk_score": None, "main_claims_driver": None, "recommended_next_action": None,
         })
 
     clients.sort(key=lambda c: (c["icr"] if c["icr"] is not None else -1), reverse=True)
     portfolio_icr = round(total_incurred / total_earned * 100, 2) if total_earned else None
+    icr_values = [c["icr"] for c in clients if c["icr"] is not None]
+    average_client_icr = round(sum(icr_values) / len(icr_values), 2) if icr_values else None
     high_risk = [c for c in clients if c["risk_band"] in ("redesign", "place")]
+    premium_at_risk = round(sum(c["premium"] or 0.0 for c in high_risk), 2)
+    claims_at_risk = round(sum(c["claims_incurred"] or 0.0 for c in high_risk), 2)
+    due_soon_clients = [c for c in clients if c["next_renewal_days"] is not None and c["next_renewal_days"] <= 30]
+    high_risk_renewals = [c for c in high_risk if c["next_renewal_days"] is not None and c["next_renewal_days"] <= 90]
+
+    priority_matrix = {
+        impact: {urgency: 0 for urgency in ("low", "medium", "high")}
+        for impact in ("low", "medium", "high")
+    }
+    for c in clients:
+        priority_matrix[c["risk_impact"]][c["urgency_band"]] += 1
+
+    queue_defs = [
+        ("immediate_attention", "Immediate Attention", "High risk + <=30 days"),
+        ("plan_strategy_call", "Plan Strategy Call", "High risk + 31-60 days"),
+        ("monitor_closely", "Monitor Closely", "Medium/high risk + 61-90 days"),
+        ("track_prepare", "Track & Prepare", ">90 days or lower risk"),
+    ]
+    queue_counts = {k: 0 for k, _, _ in queue_defs}
+    for c in clients:
+        queue_counts[_action_bucket(c)] += 1
+    renewal_action_queue = [
+        {"key": key, "label": label, "basis": basis, "count": queue_counts[key]}
+        for key, label, basis in queue_defs
+    ]
+    client_risk_queue = sorted(clients, key=_priority_score, reverse=True)
 
     nbas = []
     if high_risk:
@@ -137,9 +219,16 @@ def broker_overview(pctx: PortfolioContext) -> dict:
     value = {
         "total_clients": len(cids), "active_policies": active_policies, "total_lives": total_lives,
         "total_premium": round(total_premium, 2), "total_claims": total_claims,
-        "portfolio_icr": portfolio_icr, "premium_basis": "written",
+        "claims_incurred": round(total_incurred, 2), "portfolio_icr": portfolio_icr,
+        "average_client_icr": average_client_icr, "projected_portfolio_icr": None,
+        "premium_at_risk": premium_at_risk, "claims_at_risk": claims_at_risk,
+        "expected_renewal_loading_exposure": None, "opportunity_value": None,
+        "renewal_due_clients": len(due_soon_clients), "high_risk_renewals": len(high_risk_renewals),
+        "premium_basis": "written",
         "renewal_due": renewal, "risk_distribution": risk, "readiness_distribution": readiness,
-        "clients": clients, "high_risk_clients": high_risk, "next_best_actions": nbas,
+        "priority_matrix": priority_matrix, "renewal_action_queue": renewal_action_queue,
+        "client_risk_queue": client_risk_queue, "clients": clients,
+        "high_risk_clients": high_risk, "next_best_actions": nbas,
         "risk_band_basis": cfg.get("threshold_basis"),
     }
     return {

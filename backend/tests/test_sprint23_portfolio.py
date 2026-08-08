@@ -85,6 +85,40 @@ def test_broker_overview_rollup(db):
     assert len(v["next_best_actions"]) >= 1
 
 
+def test_broker_overview_master_command_center_additive_fields(db):
+    c1, c2 = _seed(db, "s23_cmd")
+    v = c.get("/portfolio/broker-overview", headers=_tok(tenant="s23_cmd")).json()["value"]
+
+    assert v["claims_incurred"] == 2100000.0
+    assert v["portfolio_icr"] == 105.0       # weighted by governed incurred / earned premium
+    assert v["average_client_icr"] == 105.0  # true average of client ICR values
+    assert v["renewal_due_clients"] == 1
+    assert v["high_risk_renewals"] == 1
+    assert v["premium_at_risk"] == 1000000.0
+    assert v["claims_at_risk"] == 1600000.0
+    assert v["projected_portfolio_icr"] is None
+    assert v["expected_renewal_loading_exposure"] is None
+    assert v["opportunity_value"] is None
+
+    assert v["priority_matrix"]["high"]["high"] == 1
+    assert v["priority_matrix"]["low"]["low"] == 1
+    queue = {x["key"]: x["count"] for x in v["renewal_action_queue"]}
+    assert queue["immediate_attention"] == 1
+    assert queue["track_prepare"] == 1
+    assert [x["client_id"] for x in v["client_risk_queue"]] == [c1, c2]
+
+    risky = v["client_risk_queue"][0]
+    assert risky["claims_incurred"] == 1600000.0
+    assert risky["renewal_due_bucket"] == "d30"
+    assert risky["risk_impact"] == "high"
+    assert risky["urgency_band"] == "high"
+    assert risky["projected_icr"] is None
+    assert risky["adjusted_icr"] is None
+    assert risky["industry"] is None
+    assert risky["risk_score"] is None
+    assert risky["main_claims_driver"] is None
+
+
 def test_broker_lives_are_client_scoped(db):
     # 3 distinct members across 2 clients must NOT be double-counted per client
     c1, c2 = _seed(db, "s23_lives")
