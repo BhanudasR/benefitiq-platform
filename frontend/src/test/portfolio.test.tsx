@@ -61,9 +61,13 @@ const BROKER = {
 };
 
 const CLIENT = {
-  data_quality_status: "Analytics Ready", advisory_blocked: false, caveats: [], formula: "client-360",
+  data_quality_status: "Analytics Ready", advisory_blocked: false,
+  caveats: ["Earned premium unavailable in canonical data; written/booked premium used as denominator."],
+  formula: "client-360",
+  source_basis: ["governed metric engines", "benchmarking / placement / wellness overviews", "renewal recommendation"],
   value: {
-    client_id: "C1", client_name: "Acme Corp", lives: 2, premium: 1000000, total_claims: 1, operational_icr: 160,
+    client_id: "C1", client_name: "Acme Corp", lives: 2, premium: 1000000, total_claims: 1,
+    claims_incurred: 1600000, operational_icr: 160,
     policy_years: [2026], policy_status: {}, premium_basis: "written", data_quality_status: "Analytics Ready",
     renewal_status: { next_renewal_date: "2026-08-11", days_to_renewal: 20, due_bucket: "d30" },
     benchmarking_status: { valid_peer_group: false, confidence: "low", features_comparable: 0, features_total: 24 },
@@ -71,6 +75,47 @@ const CLIENT = {
     wellness_status: { posture: "Improving population posture" },
     next_best_action: { recommendation: "defend", confidence: "medium", reason: "ICR within the defend band." },
     links: { renewal: "/renewal", benchmarking: "/benchmarking", placement: "/placement", wellness: "/wellness", claims: "/claims" },
+    policy_snapshot: {
+      client_id: "C1", client_name: "Acme Corp", policy_numbers: ["GMC-2026"], policy_years: [2026],
+      policy_count: 1, policy_start_date: "2026-04-01", policy_end_date: "2026-08-11",
+      days_to_renewal: 20, due_bucket: "d30", policy_status: { ACTIVE: 1 }, insurers: ["STAR"], tpas: ["MEDI"],
+      exposure: {
+        sum_insured_distribution: { total: 1000000, average: 500000, min: 500000, max: 500000 },
+        total_sum_insured: 1000000, corporate_floater_sum_insured: null, benefit_coverage_values: null,
+      },
+    },
+    financial_snapshot: {
+      annual_premium: 1000000, claims_incurred: 1600000, earned_premium: 1000000, premium_basis: "written",
+      operational_icr: 160, paid_icr: 160, outstanding_icr: 0, claim_count: 1,
+      projected_icr: null, annualized_icr: null, adjusted_icr: null, renewal_loading_exposure: null,
+    },
+    population_snapshot: {
+      lives: 2, employees: 2, dependents: 0, relation_distribution: { Self: 2 },
+      average_age: 40, senior_citizens: null, parents_covered: null,
+    },
+    risk_readiness: {
+      data_quality_status: "Analytics Ready",
+      benchmarking_status: { valid_peer_group: false, confidence: "low", features_comparable: 0, features_total: 24 },
+      placement_status: { placement_state: "no", incumbent_defence_score: 0.7, rfq_readiness: 0.4 },
+      wellness_status: { posture: "Improving population posture" },
+      renewal_status: { next_renewal_date: "2026-08-11", days_to_renewal: 20, due_bucket: "d30" },
+      risk_score: null, top_claims_driver: null,
+    },
+    action_center: {
+      next_best_action: { recommendation: "defend", confidence: "medium", reason: "ICR within the defend band." },
+      linked_actions: [
+        { key: "renewal", label: "Renewal Intelligence", path: "/renewal" },
+        { key: "claims", label: "Claims Analytics", path: "/claims" },
+        { key: "benchmarking", label: "Benchmarking", path: "/benchmarking" },
+        { key: "placement", label: "Placement Intelligence", path: "/placement" },
+        { key: "wellness", label: "Wellness Intelligence", path: "/wellness" },
+      ],
+      opportunity_value: null,
+    },
+    unsupported_metrics: {
+      projected_icr: null, annualized_icr: null, adjusted_icr: null, opportunity_value: null,
+      renewal_loading_exposure: null, top_claims_driver: null, risk_score: null, benefit_coverage_values: null,
+    },
   },
 };
 
@@ -120,16 +165,40 @@ describe("Broker Portfolio (governed command center)", () => {
 });
 
 describe("Client Portfolio (governed client-360)", () => {
-  it("renders KPIs, health cards, NBA and quick-links from governed values", async () => {
+  it("renders the master client portfolio sections from client-overview only", async () => {
     (api.portfolio as any).mockResolvedValue(CLIENT);
     renderWithProviders(<ClientPortfolio />, { route: "/client-portfolio?client_id=C1" });
-    await waitFor(() => expect(screen.getByTestId("cp-kpis")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId("cp-master-screen")).toBeInTheDocument());
     expect(api.portfolio).toHaveBeenCalledWith("client-overview", { client_id: "C1" });
+
+    expect(screen.getByTestId("cp-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-policy-snapshot")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-kpi-band")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-financial-visual")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-policy-exposure")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-population-snapshot")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-risk-readiness")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-action-cards")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-evidence-footer")).toBeInTheDocument();
+
     expect(screen.getByTestId("cp-kpi-icr")).toHaveTextContent("160%");
-    expect(screen.getByTestId("cp-health-bench")).toHaveTextContent(/Not available/i);
-    expect(screen.getByTestId("cp-health-placement")).toHaveTextContent("no");
-    expect(screen.getByTestId("cp-health-wellness")).toHaveTextContent(/Assessed/i);
-    expect(screen.getByTestId("cp-links")).toHaveTextContent(/Renewal/);
+    expect(screen.getByTestId("cp-kpi-incurred")).toHaveTextContent("16,00,000");
+    expect(screen.getByTestId("cp-exposure-total-si")).toHaveTextContent("10,00,000");
+    expect(screen.getByTestId("cp-ready-benchmarking")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("cp-ready-placement")).toHaveTextContent("no");
+    expect(screen.getByTestId("cp-ready-wellness")).toHaveTextContent(/Assessed/i);
+    expect(screen.getByTestId("cp-action-cards")).toHaveTextContent(/Renewal Intelligence/);
+  });
+
+  it("renders unsupported advanced client BRD fields as Not Available", async () => {
+    (api.portfolio as any).mockResolvedValue(CLIENT);
+    renderWithProviders(<ClientPortfolio />, { route: "/client-portfolio?client_id=C1" });
+    await waitFor(() => expect(screen.getByTestId("cp-kpi-projected")).toBeInTheDocument());
+    expect(screen.getByTestId("cp-kpi-projected")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("cp-kpi-annualized")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("cp-kpi-opportunity")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("cp-exposure-buffer")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("cp-ready-risk-score")).toHaveTextContent("Not Available");
   });
 
   it("without a client_id shows the governed client picker", async () => {

@@ -140,6 +140,43 @@ def test_client_overview_composition(db):
     assert set(["renewal", "benchmarking", "placement", "wellness", "claims"]).issubset(v["links"].keys())
 
 
+def test_client_overview_master_screen_additive_fields(db):
+    c1, _ = _seed(db, "s23_cp_master")
+    res = c.get(f"/portfolio/client-overview?client_id={c1}", headers=_tok(tenant="s23_cp_master")).json()
+    v = res["value"]
+
+    assert v["claims_incurred"] == 1600000.0
+    assert v["policy_snapshot"]["client_name"] == "Acme Corp"
+    assert v["policy_snapshot"]["policy_count"] == 1
+    assert v["policy_snapshot"]["days_to_renewal"] == 20
+    assert v["policy_snapshot"]["due_bucket"] == "d30"
+    assert v["policy_snapshot"]["exposure"]["total_sum_insured"] == 1000000.0
+    assert v["financial_snapshot"]["annual_premium"] == 1000000.0
+    assert v["financial_snapshot"]["claims_incurred"] == 1600000.0
+    assert v["financial_snapshot"]["operational_icr"] == 160.0
+    assert v["financial_snapshot"]["premium_basis"] == "written"
+    assert v["population_snapshot"]["lives"] == 2
+    assert v["population_snapshot"]["employees"] == 2
+    assert v["population_snapshot"]["dependents"] == 0
+    assert v["population_snapshot"]["relation_distribution"] == {"Self": 2}
+    assert v["risk_readiness"]["renewal_status"]["days_to_renewal"] == 20
+    assert v["risk_readiness"]["top_claims_driver"] is None
+    assert v["action_center"]["next_best_action"]["recommendation"] is not None
+    assert [a["key"] for a in v["action_center"]["linked_actions"]] == [
+        "renewal", "claims", "benchmarking", "placement", "wellness"]
+
+    unsupported = v["unsupported_metrics"]
+    assert unsupported["projected_icr"] is None
+    assert unsupported["annualized_icr"] is None
+    assert unsupported["adjusted_icr"] is None
+    assert unsupported["opportunity_value"] is None
+    assert unsupported["renewal_loading_exposure"] is None
+    assert unsupported["top_claims_driver"] is None
+    assert unsupported["risk_score"] is None
+    assert unsupported["benefit_coverage_values"] is None
+    assert "written/booked premium used as denominator" in " ".join(res["caveats"])
+
+
 def test_client_overview_reconciles_with_metrics_icr(db):
     c1, _ = _seed(db, "s23_rec")
     h = _tok(tenant="s23_rec")
@@ -171,6 +208,17 @@ def test_client_scoping_broker_view_scoped_to_assigned_client(db):
     assert v["total_clients"] == 1 and v["clients"][0]["client_id"] == c1
     # and they cannot read another client's 360
     assert c.get(f"/portfolio/client-overview?client_id={c2}", headers=h).status_code == 403
+
+
+def test_client_overview_tenant_isolation_and_client_scoped_lives(db):
+    c1, _ = _seed(db, "s23_cp_ta")
+    other = c.get(f"/portfolio/client-overview?client_id={c1}", headers=_tok(tenant="s23_cp_tb")).json()
+    assert other["data_quality_status"] == "No Data"
+    assert other["value"]["population_snapshot"]["lives"] == 0
+
+    scoped = c.get(f"/portfolio/client-overview?client_id={c1}", headers=_tok(tenant="s23_cp_ta")).json()["value"]
+    assert scoped["population_snapshot"]["lives"] == 2
+    assert scoped["population_snapshot"]["relation_distribution"] == {"Self": 2}
 
 
 def test_evidence_and_404(db):
