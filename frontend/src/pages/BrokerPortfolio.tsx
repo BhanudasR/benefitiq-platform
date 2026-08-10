@@ -162,6 +162,67 @@ function RenewalActionQueue({ queue }: { queue: any[] }) {
   );
 }
 
+function BrokerInsightRail({ value }: { value: any }) {
+  const actions = value.next_best_actions || [];
+  const alerts = [
+    { label: "High-risk renewals", value: num(value.high_risk_renewals), tone: "bg-red-50 text-bad border-red-200" },
+    { label: "Renewal due clients", value: num(value.renewal_due_clients), tone: "bg-amber-50 text-warn border-amber-200" },
+    { label: "Premium at risk", value: money(value.premium_at_risk), tone: "bg-blue-50 text-brand border-blue-200" },
+  ];
+  const opportunities = [
+    { label: "Opportunity value", value: money(value.opportunity_value), sub: "Backend supplied only" },
+    { label: "Loading exposure", value: money(value.expected_renewal_loading_exposure), sub: "Backend supplied only" },
+    { label: "Projected portfolio ICR", value: pct(value.projected_portfolio_icr), sub: "Backend supplied only" },
+  ];
+  return (
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-3" data-testid="bp-insight-rail">
+      <Card className="p-4">
+        <div data-testid="bp-alerts">
+          <div className="text-sm font-semibold text-ink">Portfolio Alerts</div>
+          <div className="mt-1 text-xs text-muted">Book-level signals returned by the governed overview</div>
+          <div className="mt-3 space-y-2">
+            {alerts.map((item) => (
+              <div key={item.label} className={`rounded-lg border px-3 py-2 ${item.tone}`}>
+                <div className="text-[11px] font-semibold uppercase">{item.label}</div>
+                <div className="mt-1 text-lg font-semibold">{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+      <Card className="p-4">
+        <div data-testid="bp-opportunities">
+          <div className="text-sm font-semibold text-ink">Opportunity Center</div>
+          <div className="mt-1 text-xs text-muted">Advanced values stay unavailable until backend evidence exists</div>
+          <div className="mt-3 grid grid-cols-1 gap-2">
+            {opportunities.map((item) => (
+              <div key={item.label} className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+                <div className="text-xs text-muted">{item.label}</div>
+                <div className="mt-1 text-base font-semibold text-ink">{item.value}</div>
+                <div className="text-[11px] text-muted">{item.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+      <Card className="p-4">
+        <div data-testid="bp-action-center">
+          <div className="text-sm font-semibold text-ink">Action Center</div>
+          <div className="mt-1 text-xs text-muted">Recommended book actions from broker-overview</div>
+          <div className="mt-3 space-y-2">
+            {actions.length ? actions.map((action: string, index: number) => (
+              <div key={`${action}-${index}`} className="flex gap-3 rounded-lg border border-line px-3 py-2 text-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand text-xs font-bold text-white">{num(index + 1)}</span>
+                <span className="text-ink">{text(action)}</span>
+              </div>
+            )) : <div className="text-sm text-muted">{NA}</div>}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function ClientRiskGrid({ clients, onOpen }: { clients: any[]; onOpen: (id: string) => void }) {
   return (
     <Card className="p-4">
@@ -267,7 +328,7 @@ export function BrokerPortfolio() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 2xl:grid-cols-8" data-testid="bp-kpi-band">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 2xl:grid-cols-8 [&_[data-testid=kpistat-value]]:break-words [&_[data-testid=kpistat-value]]:text-xl" data-testid="bp-kpi-band">
         <KpiStat label="Total Clients" value={num(v.total_clients)} sub={`${num(v.active_policies)} active policies`}
           badge={<DataQualityBadge status={status} />} testid="bp-kpi-clients" />
         <KpiStat label="Lives Covered" value={num(v.total_lives)} sub="Distinct members" testid="bp-kpi-lives" />
@@ -294,12 +355,14 @@ export function BrokerPortfolio() {
         <RenewalActionQueue queue={v.renewal_action_queue || []} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4" data-testid="bp-risk-exposure-band">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 [&_[data-testid=kpistat-value]]:break-words [&_[data-testid=kpistat-value]]:text-xl" data-testid="bp-risk-exposure-band">
         <KpiStat label="Premium at Risk" value={money(v.premium_at_risk)} sub="High-risk clients" testid="bp-kpi-premium-risk" />
         <KpiStat label="Claims at Risk" value={money(v.claims_at_risk)} sub="High-risk clients" testid="bp-kpi-claims-risk" />
         <KpiStat label="Loading Exposure" value={money(v.expected_renewal_loading_exposure)} sub="Backend supplied only" testid="bp-kpi-loading" />
         <KpiStat label="Opportunity Value" value={money(v.opportunity_value)} sub="Backend supplied only" testid="bp-kpi-opportunity" />
       </div>
+
+      <BrokerInsightRail value={v} />
 
       <ClientRiskGrid clients={filteredClients} onOpen={(id) => nav(`/client-portfolio?client_id=${id}`)} />
 

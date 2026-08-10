@@ -161,6 +161,57 @@ function PolicyExposure({ exposure }: { exposure: any }) {
   );
 }
 
+function PolicyTimeline({ snapshot }: { snapshot: any }) {
+  const items = [
+    { label: "Policy Start", value: text(snapshot?.policy_start_date), tone: "bg-green-50 text-good border-green-200" },
+    { label: "Current Review", value: text(snapshot?.due_bucket), tone: "bg-blue-50 text-brand border-blue-200" },
+    { label: "Renewal Date", value: text(snapshot?.policy_end_date), tone: "bg-amber-50 text-warn border-amber-200" },
+  ];
+  return (
+    <Card className="p-4">
+      <div data-testid="cp-policy-timeline">
+        <div className="text-sm font-semibold text-ink">Policy Timeline</div>
+        <div className="mt-1 text-xs text-muted">Visible dates only; missing milestones are not inferred</div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {items.map((item) => (
+            <div key={item.label} className={`rounded-lg border px-3 py-3 ${item.tone}`}>
+              <div className="text-[11px] font-semibold uppercase">{item.label}</div>
+              <div className="mt-1 text-sm font-semibold">{item.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function YearOverYearPanel({ unsupported }: { unsupported: any }) {
+  const rows = [
+    { label: "Annual Premium YoY", value: text(unsupported?.annual_premium_yoy) },
+    { label: "Lives YoY", value: text(unsupported?.lives_yoy) },
+    { label: "Sum Insured YoY", value: text(unsupported?.sum_insured_yoy) },
+    { label: "Claims YoY", value: text(unsupported?.claims_yoy) },
+    { label: "Operational ICR YoY", value: text(unsupported?.operational_icr_yoy) },
+    { label: "Projected ICR", value: pct(unsupported?.projected_icr) },
+  ];
+  return (
+    <Card className="p-4">
+      <div data-testid="cp-yoy-panel">
+        <div className="text-sm font-semibold text-ink">Year-over-Year Change</div>
+        <div className="mt-1 text-xs text-muted">Reference section retained with unavailable values clearly marked</div>
+        <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-3">
+          {rows.map((row) => (
+            <div key={row.label} className="rounded-lg border border-line bg-slate-50 px-3 py-3">
+              <div className="text-[11px] text-muted">{row.label}</div>
+              <div className="mt-1 text-sm font-semibold text-ink">{row.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function RiskReadinessCenter({ risk, status }: { risk: any; status: string }) {
   const bm = risk?.benchmarking_status || {};
   const pl = risk?.placement_status || {};
@@ -185,6 +236,57 @@ function RiskReadinessCenter({ risk, status }: { risk: any; status: string }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+function ClientInsightRail({ value, unsupported }: { value: any; unsupported: any }) {
+  const ps = value.policy_snapshot || {};
+  const pop = value.population_snapshot || {};
+  const action = value.action_center || {};
+  const nba = action.next_best_action || {};
+  const highlights = [
+    `Policy count: ${num(ps.policy_count)}`,
+    `Lives covered: ${num(pop.lives)}`,
+    `Operational ICR: ${pct(value.financial_snapshot?.operational_icr)}`,
+    `Premium basis: ${text(value.financial_snapshot?.premium_basis)}`,
+  ];
+  const alerts = [
+    ps.days_to_renewal != null ? `Renewal due in ${num(ps.days_to_renewal)} Days` : NA,
+    `Top claims driver: ${text(unsupported?.top_claims_driver)}`,
+    `Risk score: ${num(unsupported?.risk_score)}`,
+  ];
+  const opportunities = [
+    `Opportunity value: ${money(unsupported?.opportunity_value)}`,
+    `Benefit coverage values: ${text(unsupported?.benefit_coverage_values)}`,
+    `Next best action: ${text(nba.recommendation)}`,
+  ];
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3" data-testid="cp-insight-rail">
+      <Card className="p-4">
+        <div data-testid="cp-key-highlights">
+          <div className="text-sm font-semibold text-ink">Key Highlights</div>
+          <div className="mt-3 space-y-2">
+            {highlights.map((item) => <div key={item} className="rounded-lg border border-line px-3 py-2 text-sm text-ink">{item}</div>)}
+          </div>
+        </div>
+      </Card>
+      <Card className="p-4">
+        <div data-testid="cp-alerts">
+          <div className="text-sm font-semibold text-ink">Alerts</div>
+          <div className="mt-3 space-y-2">
+            {alerts.map((item) => <div key={item} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-warn">{item}</div>)}
+          </div>
+        </div>
+      </Card>
+      <Card className="p-4">
+        <div data-testid="cp-opportunities">
+          <div className="text-sm font-semibold text-ink">Opportunities</div>
+          <div className="mt-3 space-y-2">
+            {opportunities.map((item) => <div key={item} className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-good">{item}</div>)}
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -292,7 +394,7 @@ export function ClientPortfolio() {
 
       <PolicySnapshot value={v} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" data-testid="cp-kpi-band">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 [&_[data-testid=kpistat-value]]:break-words [&_[data-testid=kpistat-value]]:text-xl" data-testid="cp-kpi-band">
         <KpiStat label="Lives Covered" value={num(pop.lives)} sub="Distinct members" badge={<DataQualityBadge status={status} />} testid="cp-kpi-lives" />
         <KpiStat label="Annual Premium" value={money(fs.annual_premium)} sub={`Basis: ${text(fs.premium_basis)}`} testid="cp-kpi-premium" />
         <KpiStat label="Claims Incurred" value={money(fs.claims_incurred)} sub={`${num(fs.claim_count)} claims`} testid="cp-kpi-incurred" />
@@ -337,6 +439,13 @@ export function ClientPortfolio() {
         <PolicyExposure exposure={exposure} />
         <ActionCenter action={action} clientId={clientId} />
       </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[0.95fr,1.05fr]">
+        <PolicyTimeline snapshot={ps} />
+        <YearOverYearPanel unsupported={unsupported} />
+      </div>
+
+      <ClientInsightRail value={v} unsupported={unsupported} />
 
       <EvidenceFooter status={status} evidence={d} onEvidence={() => setEv(true)} />
       <EvidenceDrawer open={ev} onClose={() => setEv(false)} title="Client portfolio evidence" evidence={ev ? d : null} />

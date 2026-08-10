@@ -61,9 +61,9 @@ function TopContextBar({ status, onEvidence }: { status: string; onEvidence: () 
 
 function InfoTile({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
-    <div className="border-l border-line pl-4 first:border-l-0 first:pl-0">
+    <div className="min-w-0 border-l border-line pl-4 first:border-l-0 first:pl-0">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">{label}</div>
-      <div className="mt-1 text-sm font-semibold text-ink">{value}</div>
+      <div className="mt-1 break-words text-sm font-semibold text-ink">{value}</div>
       {sub && <div className="mt-0.5 text-[11px] text-muted">{sub}</div>}
     </div>
   );
@@ -92,6 +92,40 @@ function PortfolioSnapshot({ portfolio, icr }: { portfolio: any; icr: any }) {
           <InfoTile label="Sum Insured" value={money(v.sum_insured)} />
           <InfoTile label="Renewal Due" value={text(v.renewal_due ?? v.days_to_renewal)} />
           <InfoTile label="Policy Status" value={text(v.policy_status)} />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ExecutiveAiPanel({ status, icr, renewal, nba }: { status: string; icr: any; renewal: any; nba: any }) {
+  const iv = icr?.value || {};
+  return (
+    <Card className="p-4 border-l-4 border-l-brand">
+      <div data-testid="exec-ai-summary">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl2 bg-brandSoft text-sm font-black text-brand">AI</div>
+          <div>
+            <div className="text-sm font-semibold text-ink">Executive AI Summary</div>
+            <p className="mt-1 text-sm leading-6 text-ink/80">
+              Portfolio status is {text(status)} with operational ICR at {pct(iv.operational_icr)}.
+              Renewal stance and next action are shown only when returned by governed recommendation APIs.
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+            <div className="text-muted">Renewal stance</div>
+            <div className="mt-1 font-semibold text-ink">{text(renewal?.recommendation)}</div>
+          </div>
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+            <div className="text-muted">Readiness</div>
+            <div className="mt-1 font-semibold text-ink">{text(renewal?.renewal_readiness_score ?? renewal?.readiness_score)}</div>
+          </div>
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+            <div className="text-muted">Next action</div>
+            <div className="mt-1 font-semibold text-ink">{text(nba?.recommended_next_action ?? nba?.action ?? nba?.recommendation)}</div>
+          </div>
         </div>
       </div>
     </Card>
@@ -161,6 +195,29 @@ function ActionCenter({ nba, renewal }: { nba: any; renewal: any }) {
               <span>{a}</span>
             </div>
           )) : <div className="text-sm text-muted">{NA}</div>}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function NavigationHub() {
+  const links = [
+    "Claims Intelligence", "Ailment Intelligence", "Settlement Intelligence", "Benefits Intelligence",
+    "Benchmarking", "Renewal Intelligence", "Placement Intelligence", "Wellness Intelligence", "Ask BenefitIQ",
+  ];
+  return (
+    <Card className="p-4">
+      <div data-testid="exec-navigation-hub">
+        <div className="text-sm font-semibold text-ink">Navigation Hub</div>
+        <div className="mt-1 text-xs text-muted">Jump to detailed analysis after reviewing the executive surface</div>
+        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-9">
+          {links.map((label, index) => (
+            <div key={label} className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-ink">
+              <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-md bg-brandSoft text-[10px] text-brand">{num(index + 1)}</span>
+              {label}
+            </div>
+          ))}
         </div>
       </div>
     </Card>
@@ -251,9 +308,12 @@ export function ExecutiveSummary() {
       <TopContextBar status={status} onEvidence={() => setEv(true)} />
       <RestrictedBanner blocked={ic?.advisory_blocked} />
       <CaveatBanner caveats={ic?.caveats} />
-      <PortfolioSnapshot portfolio={p} icr={ic} />
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr,0.95fr]">
+        <PortfolioSnapshot portfolio={p} icr={ic} />
+        <ExecutiveAiPanel status={status} icr={ic} renewal={renewal.data} nba={nba.data} />
+      </div>
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-6" data-testid="exec-kpi-band">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-6 [&_[data-testid=kpistat-value]]:break-words [&_[data-testid=kpistat-value]]:text-xl" data-testid="exec-kpi-band">
         <KpiStat label="Operational ICR" value={pct(iv.operational_icr)} sub={`Basis: ${text(ic?.premium_basis ?? pv.premium_basis)}`}
           badge={<DataQualityBadge status={status} />} onEvidence={() => setEv(true)} testid="exec-kpi-icr" />
         <KpiStat label="Projected ICR" value={pct(iv.projected_icr ?? renewal.data?.projected_icr)} sub="Backend supplied only" testid="exec-kpi-projected" />
@@ -319,6 +379,8 @@ export function ExecutiveSummary() {
         <OpportunityCenter wellness={wellness.data} benchmark={benchmark.data} simulation={simulation.data} />
         <ActionCenter nba={nba.data} renewal={renewal.data} />
       </div>
+
+      <NavigationHub />
 
       <ChartFrame title="Operational ICR Trend" subtitle="Per policy year; backend values only"
         status={trends.data?.data_quality_status} caveats={trends.data?.caveats} evidence={trends.data}

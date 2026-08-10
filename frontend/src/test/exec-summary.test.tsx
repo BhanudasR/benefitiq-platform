@@ -124,6 +124,7 @@ describe("Executive Summary - master screen pattern (API-driven)", () => {
 
     expect(screen.getByTestId("exec-top-context")).toBeInTheDocument();
     expect(screen.getByTestId("exec-portfolio-snapshot")).toBeInTheDocument();
+    expect(screen.getByTestId("exec-ai-summary")).toBeInTheDocument();
     expect(screen.getByTestId("exec-kpi-band")).toBeInTheDocument();
     expect(screen.getByTestId("exec-financial-visual")).toBeInTheDocument();
     expect(screen.getByTestId("exec-icr-gauge")).toBeInTheDocument();
@@ -133,6 +134,7 @@ describe("Executive Summary - master screen pattern (API-driven)", () => {
     expect(screen.getByTestId("exec-risk-center")).toBeInTheDocument();
     expect(screen.getByTestId("exec-opportunity-center")).toBeInTheDocument();
     expect(screen.getByTestId("exec-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("exec-navigation-hub")).toBeInTheDocument();
     expect(screen.getByTestId("exec-evidence-footer")).toBeInTheDocument();
 
     expect(within(screen.getByTestId("exec-kpi-icr")).getByText("73.64%")).toBeInTheDocument();

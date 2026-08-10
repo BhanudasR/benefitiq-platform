@@ -134,6 +134,10 @@ describe("Broker Portfolio (governed command center)", () => {
     expect(screen.getByTestId("bp-premium-risk")).toBeInTheDocument();
     expect(screen.getByTestId("bp-risk-distribution")).toBeInTheDocument();
     expect(screen.getByTestId("bp-action-queue")).toBeInTheDocument();
+    expect(screen.getByTestId("bp-insight-rail")).toBeInTheDocument();
+    expect(screen.getByTestId("bp-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("bp-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("bp-action-center")).toBeInTheDocument();
     expect(screen.getByTestId("bp-client-risk-grid")).toBeInTheDocument();
     expect(screen.getByTestId("bp-evidence-footer")).toBeInTheDocument();
 
@@ -179,6 +183,12 @@ describe("Client Portfolio (governed client-360)", () => {
     expect(screen.getByTestId("cp-population-snapshot")).toBeInTheDocument();
     expect(screen.getByTestId("cp-risk-readiness")).toBeInTheDocument();
     expect(screen.getByTestId("cp-action-cards")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-policy-timeline")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-yoy-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-insight-rail")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-key-highlights")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("cp-opportunities")).toBeInTheDocument();
     expect(screen.getByTestId("cp-evidence-footer")).toBeInTheDocument();
 
     expect(screen.getByTestId("cp-kpi-icr")).toHaveTextContent("160%");
