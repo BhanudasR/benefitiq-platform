@@ -86,11 +86,25 @@ describe("Rejection dashboard", () => {
     wire({ rejection: REJ });
     renderWithProviders(<Rejection />);
     await waitFor(() => expect(screen.getByTestId("rej-kpis")).toBeInTheDocument());
+    expect(screen.getByTestId("rej-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("rej-insight-summary")).toBeInTheDocument();
     expect(screen.getByTestId("rej-kpi-count")).toHaveTextContent("1");
+    expect(screen.getByTestId("rej-kpi-recoverable")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("rej-kpi-avoidable")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("rej-kpi-appeal")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("rej-kpi-repeat")).toHaveTextContent(/Not Available/i);
     expect(screen.getByTestId("rej-gauge")).toBeInTheDocument();
     expect(screen.getByTestId("rej-bytype")).toHaveTextContent("Reimbursement");
+    expect(screen.getByTestId("rej-basis-panel")).toHaveTextContent(/Repudiated/i);
     expect(screen.getByTestId("rej-reasons")).toHaveTextContent(/Not available/i);
     expect(screen.getByTestId("rej-wrongful")).toHaveTextContent(/Not available/i);
+    expect(screen.getByTestId("rej-splits-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("rej-queue-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("rej-prevention-actions")).toHaveTextContent(/Operational checklist/i);
+    expect(screen.getByTestId("rej-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("rej-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("rej-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("rej-evidence-footer")).toBeInTheDocument();
   });
   it("No-Data renders empty state", async () => {
     wire({ rejection: NODATA });

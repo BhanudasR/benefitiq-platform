@@ -98,9 +98,23 @@ describe("Hospital dashboard", () => {
     wire(HOSPITAL);
     renderWithProviders(<Hospital />);
     await waitFor(() => expect(screen.getByTestId("hospital-kpis")).toBeInTheDocument());
+    expect(screen.getByTestId("hospital-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("hospital-insight-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("hospital-kpi-cost-index")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("hospital-kpi-leakage")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("hospital-kpi-risk-score")).toHaveTextContent("Not Available");
     expect(screen.getByTestId("hospital-top")).toHaveTextContent("Apollo");
     expect(screen.getByTestId("hospital-network")).toHaveTextContent("Network");
+    expect(screen.getByTestId("hospital-efficiency-unsupported")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("hospital-provider-grid")).toHaveTextContent("Aggregate Provider Performance");
     expect(screen.getByTestId("hospital-table")).toHaveTextContent("Not available");   // city never fabricated
+    expect(screen.getByTestId("hospital-geography-unsupported")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("hospital-tpa-unsupported")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("hospital-negotiation-unsupported")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("hospital-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("hospital-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("hospital-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("hospital-evidence-footer")).toBeInTheDocument();
   });
   it("No-Data renders empty state", async () => {
     wire({ hospital: NODATA });
