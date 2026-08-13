@@ -9,6 +9,7 @@ vi.mock("../lib/api", async (orig) => {
 });
 import { api } from "../lib/api";
 import { Demographics } from "../pages/Demographics";
+import { EmployeeFamily } from "../pages/EmployeeFamily";
 import { SIUtilization } from "../pages/SIUtilization";
 
 function wire(map: any) {
@@ -32,6 +33,13 @@ const SI = { data_quality_status: "Analytics Ready", caveats: [], formula: "util
   si_bands: [{ band: "<3L", count: 0 }, { band: "5-10L", count: 4 }],
   utilization_bands: [{ band: "0%", count: 2 }, { band: "1-25%", count: 1 }, { band: ">=100% (exhausted)", count: 1 }] } };
 const SI_NOFLOAT = { ...SI, value: { ...SI.value, family_floater_available: false } };
+const RELATION = { data_quality_status: "Analytics Ready", caveats: [], formula: "group by member relationship", value: {
+  groups: [
+    { key: "Self", count: 8, paid: 520000, incurred: 650000, average_claim_size: 81250, incurred_share: 0.52 },
+    { key: "Spouse", count: 4, paid: 240000, incurred: 300000, average_claim_size: 75000, incurred_share: 0.24 },
+    { key: "Father", count: 2, paid: 180000, incurred: 200000, average_claim_size: 100000, incurred_share: 0.16 }
+  ],
+  parent_claim_share: 0.16 } };
 
 beforeEach(() => (api.metric as any).mockReset());
 
@@ -41,11 +49,20 @@ describe("Demographics dashboard (governed /metrics/demographics)", () => {
     renderWithProviders(<Demographics />);
     await waitFor(() => expect(screen.getByTestId("demo-kpis")).toBeInTheDocument());
     expect(api.metric).toHaveBeenCalledWith("demographics");
+    expect(screen.getByTestId("demo-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("demo-insight-summary")).toBeInTheDocument();
     expect(screen.getByTestId("demo-kpi-senior")).toHaveTextContent("25%");
     expect(screen.getByTestId("demo-kpi-avgage")).toHaveTextContent("38.8");
+    expect(screen.getByTestId("demo-kpi-female")).toHaveTextContent(/Not Available/i);
     expect(screen.getByTestId("demo-age")).toBeInTheDocument();
     expect(screen.getByTestId("demo-gender")).toHaveTextContent("Male");
     expect(screen.getByTestId("demo-relationship")).toHaveTextContent("Self");
+    expect(screen.getByTestId("demo-risk-summary")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("demo-geography-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("demo-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("demo-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("demo-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("demo-evidence-footer")).toBeInTheDocument();
   });
 
   it("gender renders 'Not available' when the API returns null", async () => {
@@ -70,19 +87,58 @@ describe("Demographics dashboard (governed /metrics/demographics)", () => {
   });
 });
 
+describe("Employee & Family dashboard (governed /metrics/relation)", () => {
+  it("renders aggregate relationship analytics and unsupported family-level sections", async () => {
+    wire({ relation: RELATION });
+    renderWithProviders(<EmployeeFamily />);
+    await waitFor(() => expect(screen.getByTestId("ef-kpis")).toBeInTheDocument());
+    expect(api.metric).toHaveBeenCalledWith("relation");
+    expect(screen.getByTestId("ef-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("ef-insight-summary")).toHaveTextContent("Self");
+    expect(screen.getByTestId("ef-kpi-parent")).toHaveTextContent("16%");
+    expect(screen.getByTestId("ef-kpi-family-risk")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("ef-bars")).toHaveTextContent("Self");
+    expect(screen.getByTestId("ef-donut")).toBeInTheDocument();
+    expect(screen.getByTestId("ef-claim-counts")).toBeInTheDocument();
+    expect(screen.getByTestId("ef-table")).toHaveTextContent("Spouse");
+    expect(screen.getByTestId("ef-high-risk-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("ef-repeat-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("ef-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("ef-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("ef-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("ef-evidence-footer")).toBeInTheDocument();
+  });
+
+  it("No-Data renders a premium empty state", async () => {
+    wire({ relation: NODATA });
+    renderWithProviders(<EmployeeFamily />);
+    await waitFor(() => expect(screen.getByTestId("empty-state")).toBeInTheDocument());
+  });
+});
+
 describe("SI Utilization dashboard (governed /metrics/si-utilization)", () => {
   it("renders KPIs, bands and signals from governed API values", async () => {
     wire({ "si-utilization": SI });
     renderWithProviders(<SIUtilization />);
     await waitFor(() => expect(screen.getByTestId("si-kpis")).toBeInTheDocument());
     expect(api.metric).toHaveBeenCalledWith("si-utilization");
+    expect(screen.getByTestId("si-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("si-insight-summary")).toBeInTheDocument();
     expect(screen.getByTestId("si-kpi-avgutil")).toHaveTextContent("35%");
     expect(screen.getByTestId("si-kpi-exhausted")).toHaveTextContent("1");
+    expect(screen.getByTestId("si-kpi-adequacy")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("si-kpi-topup")).toHaveTextContent(/Not Available/i);
     expect(screen.getByTestId("si-gauge")).toHaveTextContent("35%");
     expect(screen.getByTestId("si-bands")).toBeInTheDocument();
     expect(screen.getByTestId("si-util-bands")).toBeInTheDocument();
-    expect(screen.getByTestId("si-signals")).toHaveTextContent(/Overinsured signal/i);
+    expect(screen.getByTestId("si-signals")).toHaveTextContent(/Overinsured utilization signal/i);
     expect(screen.getByTestId("si-floater")).toHaveTextContent(/Available/i);
+    expect(screen.getByTestId("si-band-designation-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("si-buffer-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("si-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("si-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("si-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("si-evidence-footer")).toBeInTheDocument();
   });
 
   it("family floater shows 'Not available' when absent", async () => {
