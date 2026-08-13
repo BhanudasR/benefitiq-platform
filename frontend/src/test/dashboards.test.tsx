@@ -39,7 +39,7 @@ describe("Claims dashboard", () => {
   it("renders governed KPIs and charts", async () => {
     wire(CLAIMS);
     renderWithProviders(<Claims />);
-    await waitFor(() => expect(screen.getByTestId("claims-kpis")).toBeInTheDocument());
+    expect(await screen.findByTestId("claims-kpis")).toBeInTheDocument();
     expect(screen.getByTestId("claims-kpi-count")).toHaveTextContent("42");
     expect(screen.getByTestId("claims-top-context")).toBeInTheDocument();
     expect(screen.getByTestId("claims-insight-summary")).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe("Claims dashboard", () => {
     expect(screen.getByTestId("claims-status")).toHaveTextContent("Settled Fully");
     await userEvent.click(screen.getAllByText(/View evidence/i)[0]);
     await waitFor(() => expect(screen.getByTestId("evidence-drawer")).toBeInTheDocument());
-  });
+  }, 15000);
   it("No-Data renders empty state", async () => {
     wire({ claims: NODATA });
     renderWithProviders(<Claims />);

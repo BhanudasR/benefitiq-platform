@@ -43,9 +43,24 @@ describe("Settlement dashboard", () => {
     renderWithProviders(<Settlement />);
     await waitFor(() => expect(screen.getByTestId("settle-kpis")).toBeInTheDocument());
     expect(api.metric).toHaveBeenCalledWith("settlement");
+    expect(screen.getByTestId("settle-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("settle-insight-summary")).toHaveTextContent("₹2,70,000");
+    expect(screen.getByTestId("settle-kpi-outstanding")).toHaveTextContent("70,000");
+    expect(screen.getByTestId("settle-kpi-partial")).toHaveTextContent("1");
+    expect(screen.getByTestId("settle-kpi-paid-ratio")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("settle-kpi-health")).toHaveTextContent(/Not Available/i);
     expect(screen.getByTestId("settle-status")).toHaveTextContent("Settled Fully");
+    expect(screen.getByTestId("settle-paid-outstanding")).toBeInTheDocument();
+    expect(screen.getByTestId("settle-type")).toHaveTextContent("Cashless");
     expect(screen.getByTestId("settle-kpi-deduction")).toHaveTextContent("₹5,000");
     expect(screen.getByTestId("settle-tat")).toHaveTextContent(/Not available/i);
+    expect(screen.getByTestId("settle-aging-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("settle-query-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("settle-tpa-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("settle-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("settle-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("settle-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("settle-evidence-footer")).toBeInTheDocument();
   });
   it("No-Data renders empty state", async () => {
     wire({ settlement: NODATA });
@@ -59,11 +74,26 @@ describe("Maternity dashboard", () => {
     wire({ maternity: MAT });
     renderWithProviders(<Maternity />);
     await waitFor(() => expect(screen.getByTestId("mat-kpis")).toBeInTheDocument());
+    expect(screen.getByTestId("mat-top-context")).toBeInTheDocument();
+    expect(screen.getByTestId("mat-insight-summary")).toHaveTextContent("₹1,10,000");
     expect(screen.getByTestId("mat-kpi-count")).toHaveTextContent("2");
+    expect(screen.getByTestId("mat-kpi-limit-util")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("mat-kpi-shortfall")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("mat-kpi-newborn-claims")).toHaveTextContent(/Not Available/i);
     expect(screen.getByTestId("mat-split")).toHaveTextContent(/C-section/i);
+    expect(screen.getByTestId("mat-split-bars")).toHaveTextContent(/Normal delivery/i);
+    expect(screen.getByTestId("mat-term-panel")).toHaveTextContent(/Benefit term only, not newborn claims/i);
     expect(screen.getByTestId("mat-limit")).toHaveTextContent("₹50,000");
     expect(screen.getByTestId("mat-newborn")).toHaveTextContent(/Not available/i);   // no confirmed term
     expect(screen.getByTestId("mat-rule")).toHaveTextContent(/ICD-10 chapter-O|diagnosis_code_l1/i);
+    expect(screen.getByTestId("mat-excluded-panel")).toHaveTextContent("1");
+    expect(screen.getByTestId("mat-cap-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("mat-hospital-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("mat-trend-unsupported")).toHaveTextContent(/Not Available/i);
+    expect(screen.getByTestId("mat-alerts")).toBeInTheDocument();
+    expect(screen.getByTestId("mat-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("mat-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("mat-evidence-footer")).toBeInTheDocument();
   });
   it("normal/C-section and limit show 'Not available' when unsupported", async () => {
     wire({ maternity: MAT_NOSPLIT });
