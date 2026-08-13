@@ -42,7 +42,11 @@ describe("Placement Trigger / NBA (single-sourced from /recommendations/placemen
     expect(screen.getByTestId("pt-reason")).toHaveTextContent(/defence is strong/i);
     expect(screen.getByTestId("pt-nba")).toHaveTextContent(/one-off claim evidence/i);
     expect(screen.getByTestId("pt-negotiation-evidence")).toHaveTextContent("73.64%");
-    expect(screen.getByText("CLM-3")).toBeInTheDocument();
+    expect(screen.getByTestId("pt-oneoff-count")).toHaveTextContent("1");
+    expect(screen.queryByText("CLM-3")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pt-negotiation-range")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("pt-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("pt-evidence-footer")).toBeInTheDocument();
     expect(screen.getByTestId("pt-reasoning")).toHaveTextContent(/Incumbent-defence score/i);
   });
 
@@ -79,7 +83,7 @@ describe("Placement Trigger / NBA (single-sourced from /recommendations/placemen
     (api.recommendation as any).mockResolvedValue(PLACEMENT);
     renderWithProviders(<PlacementTrigger />);
     await waitFor(() => expect(screen.getByTestId("pt-triggered")).toBeInTheDocument());
-    await userEvent.click(screen.getByText(/View evidence/i));
+    await userEvent.click(screen.getByRole("button", { name: "View evidence and caveats" }));
     await waitFor(() => expect(screen.getByTestId("evidence-drawer")).toBeInTheDocument());
   });
 });

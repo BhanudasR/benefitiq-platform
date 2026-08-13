@@ -9,6 +9,8 @@ import {
 import { EvidenceDrawer, MiniTrend } from "../components/ui/sandbox";
 import { ChartFrame, Donut, BarH, Quadrant, SERIES } from "../components/ui/charts";
 
+const NA = "Not Available";
+
 /** Renewal › Claims Drivers — governed demo-parity view of what is driving renewal
  *  pressure: frequency vs severity, paid-vs-outstanding movement, large-claim effect,
  *  relation / hospital / ailment concentration. Every figure is rendered straight from
@@ -71,7 +73,7 @@ export function ClaimsDrivers() {
     ? Object.entries(c.status_split).map(([k, v]) => ({ status: k, count: v })) : [];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-testid="claims-drivers-master-screen">
       <SectionHeader title="Claims Drivers" subtitle="Frequency vs severity, movement, and the cohorts driving renewal risk"
         right={<DataQualityBadge status={status} />} />
       <RestrictedBanner blocked={blocked} />
@@ -89,6 +91,31 @@ export function ClaimsDrivers() {
         <KpiCard label="Average severity" value={fmtCurrency(c.average_claim_size)} sub="Mean claim size" />
         <KpiCard label="Total incurred" value={fmtCurrency(c.incurred)} sub="Paid plus outstanding" />
       </div>
+
+      <Card className="p-4 border-l-4 border-l-brand">
+        <div data-testid="cd-driver-matrix">
+          <div className="text-sm font-semibold text-ink">Driver Matrix</div>
+          <div className="mt-1 text-xs text-muted">Aggregate renewal pressure signals, no claim or member identifiers</div>
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
+            <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+              <div className="text-xs text-muted">Frequency</div>
+              <div className="mt-1 text-lg font-semibold text-ink">{fmtNumber(c.claim_count)}</div>
+            </div>
+            <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+              <div className="text-xs text-muted">Severity</div>
+              <div className="mt-1 text-lg font-semibold text-ink">{fmtCurrency(c.average_claim_size)}</div>
+            </div>
+            <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+              <div className="text-xs text-muted">Large claim contribution</div>
+              <div className="mt-1 text-lg font-semibold text-ink">{fmtShare(largeVal?.large_claim_incurred_share)}</div>
+            </div>
+            <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+              <div className="text-xs text-muted">Recurring risk score</div>
+              <div className="mt-1 text-lg font-semibold text-ink">{NA}</div>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Paid vs outstanding movement */}
       <Card className="p-4">
@@ -114,6 +141,7 @@ export function ClaimsDrivers() {
             <div><div className="text-xs text-muted">Large-claim incurred</div><div className="text-xl font-semibold">{fmtCurrency(largeVal.large_claim_incurred)}</div></div>
             <div><div className="text-xs text-muted">Share of incurred</div><div className="text-xl font-semibold">{fmtShare(largeVal.large_claim_incurred_share)}</div></div>
           </div>
+          <p className="mt-2 text-xs text-muted">One-off review candidates are aggregate-safe. Raw claim numbers and member identifiers are not displayed.</p>
         </Card>
       )}
 
@@ -199,11 +227,64 @@ export function ClaimsDrivers() {
         ail?.top_ailments?.length ? `Leading ailment driver: ${ail.top_ailments[0].key} (${fmtShare(ail.top_ailments[0].incurred_share)}).` : "Ailment drivers not yet available.",
       ]} />
 
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3" data-testid="cd-action-rail">
+        <Card className="p-4">
+          <div data-testid="cd-alerts">
+            <div className="text-sm font-semibold text-ink">Driver Alerts</div>
+            <div className="mt-3 space-y-2">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-bad">Large claim candidate count: {fmtNumber(largeVal?.large_claim_count)}</div>
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-bad">Recurring risk score: {NA}</div>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div data-testid="cd-opportunities">
+            <div className="text-sm font-semibold text-ink">Opportunities</div>
+            <div className="mt-3 space-y-2">
+              <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-good">Test backend-supported levers in the Sandbox</div>
+              <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-good">Review Ailment, Hospital and SI Utilization drilldowns</div>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div data-testid="cd-action-center">
+            <div className="text-sm font-semibold text-ink">Action Center</div>
+            <div className="mt-3 grid grid-cols-1 gap-2 text-sm">
+              <div className="rounded-lg border border-line px-3 py-2">Open Benefit and Savings Sandbox</div>
+              <div className="rounded-lg border border-line px-3 py-2">Open Ailment Intelligence</div>
+              <div className="rounded-lg border border-line px-3 py-2">Open Hospital Analytics</div>
+              <div className="rounded-lg border border-line px-3 py-2">Open SI Utilization</div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <Card className="p-4">
+        <div data-testid="cd-unsupported" className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {["Individual claim attribution", "Family-level risk score", "Recurring risk score"].map((label) => (
+            <div key={label} className="rounded-lg border border-line bg-slate-50 px-3 py-2">
+              <div className="text-xs text-muted">{label}</div>
+              <div className="mt-1 text-sm font-semibold text-ink">{NA}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       <FourQuestions
         soWhat={`${fmtNumber(c.claim_count)} claims at ${fmtCurrency(c.average_claim_size)} average are pushing incurred to ${fmtCurrency(c.incurred)} — the renewal-pressure base.`}
         why="Drivers are broken out by frequency vs severity, relation, hospital and ailment so the cause is visible, not averaged away."
         next="Take the top relation/hospital/ailment drivers into the Savings Sandbox and Balanced Benefit Design to test targeted levers."
         trust={`Every number is from governed metric APIs (claims, large-claims, relation, hospital, ailment, trends); data quality ${status}. Missing dimensions show an explicit empty state, never a fabricated zero.`} />
+
+      <Card className="p-4">
+        <div data-testid="cd-evidence-footer" className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-sm font-semibold text-ink">Evidence and Caveats</div>
+            <div className="mt-1 text-xs text-muted">Claims Drivers uses aggregate metrics only. Raw claim, member, employee and family identifiers are not displayed.</div>
+          </div>
+          <DataQualityBadge status={status} />
+        </div>
+      </Card>
 
       <button className="text-xs font-medium text-brand hover:underline"
         onClick={() => setEv({ title: "Claims driver evidence", data: claims.data })}>View evidence →</button>

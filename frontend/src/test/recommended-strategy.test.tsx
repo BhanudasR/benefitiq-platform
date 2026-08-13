@@ -47,6 +47,11 @@ describe("Recommended Strategy (single-sourced from /recommendations/renewal)", 
     expect(screen.getByTestId("rs-employee")).toHaveTextContent("copay");
     expect(screen.getByTestId("rs-nba")).toHaveTextContent(/one-off claim evidence/i);
     expect(screen.getByTestId("rs-source-metrics")).toHaveTextContent("/metrics/icr");
+    expect(screen.getByTestId("strategy-boardroom-summary")).toHaveTextContent("Planned");
+    expect(screen.getByTestId("rs-strategy-score")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("rs-risk-action-matrix")).toBeInTheDocument();
+    expect(screen.getByTestId("rs-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("rs-evidence-footer")).toBeInTheDocument();
   });
 
   it("renders Operational and Adjusted / Defendable ICR separately from the API", async () => {
@@ -81,7 +86,7 @@ describe("Recommended Strategy (single-sourced from /recommendations/renewal)", 
     (api.recommendation as any).mockResolvedValue(RENEWAL);
     renderWithProviders(<RecommendedStrategy />);
     await waitFor(() => expect(screen.getByTestId("rs-stance")).toBeInTheDocument());
-    await userEvent.click(screen.getByText(/View evidence/i));
+    await userEvent.click(screen.getByRole("button", { name: "View evidence and caveats" }));
     await waitFor(() => expect(screen.getByTestId("evidence-drawer")).toBeInTheDocument());
   });
 });

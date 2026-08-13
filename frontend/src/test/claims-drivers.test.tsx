@@ -44,6 +44,10 @@ describe("Claims Drivers (governed, API-driven — Option A)", () => {
     expect(screen.getByTestId("cd-relation-donut")).toBeInTheDocument();
     expect(screen.getByTestId("cd-ailment-quadrant")).toBeInTheDocument();
     expect(screen.getByTestId("cd-hospital-bar")).toBeInTheDocument();
+    expect(screen.getByTestId("cd-driver-matrix")).toHaveTextContent("Recurring risk score");
+    expect(screen.getByTestId("cd-driver-matrix")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("cd-action-center")).toHaveTextContent(/Sandbox/i);
+    expect(screen.getByTestId("cd-evidence-footer")).toHaveTextContent(/Raw claim/i);
     // these labels now appear in BOTH the chart and the table (governed API values)
     expect(screen.getAllByText("Self").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Apollo").length).toBeGreaterThan(0);

@@ -8,10 +8,18 @@ import { RENEWAL_SUBTABS } from "../nav/tabs";
  *  sub-tab renders through <Outlet/>; every sub-tab stays governed & API-driven. */
 export function RenewalShell() {
   return (
-    <div className="space-y-1">
-      <SectionHeader
-        title="Renewal Intelligence"
-        subtitle="Governed renewal defensibility, savings levers and placement strategy" />
+    <div className="space-y-3">
+      <div className="rounded-xl2 border border-line bg-card p-4 shadow-card" data-testid="renewal-shell-command">
+        <SectionHeader
+          title="Renewal Intelligence"
+          subtitle="Flagship broker advisory workbench: data, insight, decision, action and value" />
+        <div className="grid grid-cols-1 gap-2 text-xs text-muted md:grid-cols-4">
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">Governed APIs only</div>
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">No frontend simulation math</div>
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">Evidence and caveats visible</div>
+          <div className="rounded-lg border border-line bg-slate-50 px-3 py-2">Export-safe aggregate view</div>
+        </div>
+      </div>
       <SubTabNav tabs={RENEWAL_SUBTABS} />
       <Outlet />
     </div>

@@ -27,14 +27,14 @@ describe("Renewal Intelligence (API-driven)", () => {
     (api.simulation as any).mockResolvedValue(ADJ);
     renderWithProviders(<RenewalIntelligence />);
     await waitFor(() => expect(screen.getByTestId("adjusted-icr")).toHaveTextContent("26%"));
-    expect(screen.getByText("72.5%")).toBeInTheDocument();                          // paid ICR (KPI)
-    expect(screen.getByText("1.14%")).toBeInTheDocument();                          // outstanding ICR (KPI)
-    // operational ICR appears in BOTH the KPI and the adjusted panel (not replaced)
-    expect(screen.getAllByText("73.64%").length).toBeGreaterThan(1);
-    expect(screen.getByTestId("op-icr")).toHaveTextContent("73.64%");
-    expect(screen.getByTestId("adjusted-label")).toHaveTextContent(/Defendable ICR view/i);
-    // Sprint 20 retrofit: governed ICR gauge is rendered from the same API value
+    expect(screen.getByTestId("renewal-kpis")).toHaveTextContent("Projected ICR");
+    expect(screen.getByTestId("renewal-kpi-current")).toHaveTextContent("73.64%");
+    expect(screen.getByTestId("renewal-kpi-projected")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("renewal-kpi-risk")).toHaveTextContent("Not Available");
+    expect(screen.getByTestId("renewal-icr-bridge")).toHaveTextContent("Adjusted defendable ICR");
     expect(screen.getByTestId("renewal-icr-gauge")).toHaveTextContent("73.64%");
+    expect(screen.getByTestId("renewal-evidence-footer")).toBeInTheDocument();
+    expect(screen.queryByText("CLM-3")).not.toBeInTheDocument();
   });
 
   it("Restricted → advisory-blocked; Conditional → caveats", async () => {
@@ -49,12 +49,16 @@ describe("Renewal Intelligence (API-driven)", () => {
     await waitFor(() => expect(screen.getByTestId("restricted-banner")).toBeInTheDocument());
   });
 
-  it("shows the large-claim / one-off impact summary and the 4-questions decision block", async () => {
+  it("shows the large-claim aggregate impact summary and action rail", async () => {
     wireMetric({ icr: ICR, trends: TRENDS, "large-claims": LARGE });
     (api.simulation as any).mockResolvedValue(ADJ);
     renderWithProviders(<RenewalIntelligence />);
     await waitFor(() => expect(screen.getByTestId("large-count")).toHaveTextContent("1"));
     expect(screen.getByTestId("large-share")).toHaveTextContent("42%");
+    expect(screen.getByTestId("renewal-alerts")).toHaveTextContent(/Projected ICR/i);
+    expect(screen.getByTestId("renewal-opportunities")).toBeInTheDocument();
+    expect(screen.getByTestId("renewal-action-center")).toBeInTheDocument();
+    expect(screen.getByTestId("renewal-projection-unsupported")).toHaveTextContent("Not Available");
     expect(screen.getByTestId("four-questions")).toBeInTheDocument();
     expect(screen.getByText(/Can I trust this number/i)).toBeInTheDocument();
   });
@@ -63,7 +67,7 @@ describe("Renewal Intelligence (API-driven)", () => {
     wireMetric({ icr: ICR, trends: TRENDS, "large-claims": LARGE });
     (api.simulation as any).mockResolvedValue(ADJ);
     renderWithProviders(<RenewalIntelligence />);
-    await waitFor(() => expect(screen.getByTestId("op-icr")).toHaveTextContent("73.64%"));
+    await waitFor(() => expect(screen.getByTestId("renewal-kpi-current")).toHaveTextContent("73.64%"));
     await userEvent.click(screen.getAllByRole("button", { name: /View evidence/i })[0]);
     await waitFor(() => expect(screen.getByTestId("evidence-drawer")).toHaveTextContent("incurred/earned x100"));
   });
